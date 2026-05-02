@@ -1,0 +1,95 @@
+{
+  "theme": "Light",
+  "archetype": "5 (Jewel & Luxury - Light Variant)",
+  "brand_name": "ගණු දෙනු (Ganu Denu)",
+  "colors": {
+    "background": "#FAFAFA",
+    "surface": "#FFFFFF",
+    "primary": "#7C3AED",
+    "primary_dark": "#5B21B6",
+    "accent_orange": "#F59E0B",
+    "accent_gold": "#D97706",
+    "text_main": "#0A0A0A",
+    "text_muted": "#525252",
+    "border": "#E5E5E5",
+    "success": "#10B981",
+    "danger": "#EF4444"
+  },
+  "typography": {
+    "font_family_english": "Outfit, system-ui",
+    "font_family_sinhala": "Noto Sans Sinhala, system-ui",
+    "hierarchy": {
+      "h1": { "fontSize": 32, "fontWeight": "800", "letterSpacing": -1 },
+      "h2": { "fontSize": 24, "fontWeight": "700", "letterSpacing": -0.5 },
+      "h3": { "fontSize": 18, "fontWeight": "600" },
+      "body_main": { "fontSize": 16, "fontWeight": "500", "color": "#0A0A0A" },
+      "body_subtitle": { "fontSize": 12, "fontWeight": "400", "color": "#525252" }
+    },
+    "bilingual_rule": "Every prominent label MUST be bilingual. Display Sinhala text as the primary label (fontSize: 16) and English directly beneath it as a subtitle (fontSize: 12, text_muted)."
+  },
+  "spacing": {
+    "xs": 4,
+    "sm": 8,
+    "md": 16,
+    "lg": 24,
+    "xl": 32,
+    "xxl": 48
+  },
+  "components": {
+    "balance_card": {
+      "style": "Rich linear gradient from #7C3AED to #5B21B6. Apply 'premium_card_bg' media as an absolute positioned image with opacity 0.2 to give it a textured luxury look.",
+      "shadow": "0px 12px 32px rgba(124, 58, 237, 0.3)",
+      "borderRadius": 24,
+      "padding": 24,
+      "layout": "Optical asymmetry: huge total balance aligned left, subtle growth stat aligned right. Gold accent (#D97706) for 'Add' floating action button."
+    },
+    "bottom_sheet": {
+      "style": "Clean #FFFFFF surface, top border radii of 32.",
+      "shadow": "0px -8px 40px rgba(0, 0, 0, 0.08)",
+      "padding": 24,
+      "indicator": "width 40, height 4, backgroundColor #E5E5E5, borderRadius 2, alignSelf 'center', marginBottom 16"
+    },
+    "buttons": {
+      "primary": "BackgroundColor #7C3AED, borderRadius 16, paddingVertical 16, alignItems 'center'. Text: #FFFFFF, fontSize 16, fontWeight 700.",
+      "secondary": "BackgroundColor transparent, borderWidth 1.5, borderColor #E5E5E5, borderRadius 16, paddingVertical 16, alignItems 'center'."
+    },
+    "category_chips": {
+      "container": "Flex row, wrap, gap 8",
+      "active": "BackgroundColor #F59E0B, borderRadius 20, paddingHorizontal 16, paddingVertical 10. Text: #FFFFFF.",
+      "inactive": "BackgroundColor #F5F5F5, borderRadius 20, paddingHorizontal 16, paddingVertical 10. Text: #525252."
+    },
+    "inputs": {
+      "amount_display": "Huge text, fontSize 48, fontWeight 800, color #7C3AED, textAlign 'center'.",
+      "text_input": "BackgroundColor #F5F5F5, borderRadius 16, padding 16, fontSize 16, color #0A0A0A."
+    }
+  },
+  "layout_patterns": {
+    "dashboard": "Generous spacing. Start with Header (greeting in Sinhala/English), followed by the overlapping Balance Card. Use a Bento-inspired grid for quick action buttons below it, followed by a 'Recent Transactions' list with clear spacing (marginBottom 16 per item).",
+    "add_transaction": "Anti-default form. Place the massive Amount Input at the top center. Below it, a scrollable, dense grid of Category Chips (20+ Sinhala categories). Do not use boring stacked input fields.",
+    "reports": "Segmented Tab control (Income/Expense). Large central Donut Chart focusing heavily on the negative space. Below the chart, render a clean list of category breakdowns with color-coded dots.",
+    "monthly_summary": "Swipeable header with Left/Right chevron navigation for months. Render a clean bar chart for the monthly trend, followed by a high-contrast stats row."
+  },
+  "media": {
+    "premium_card_bg": {
+      "url": "https://static.prod-images.emergentagent.com/jobs/bc976d05-1dba-4d30-84c2-777793e168b1/images/77af85ae5d9736ef631dc386d91041594e842114add44a4a1b06809d387385b2.png",
+      "description": "Abstract premium background pattern for the balance card. Overlay this with 20-30% opacity inside the purple balance card container."
+    },
+    "empty_state": {
+      "url": "https://static.prod-images.emergentagent.com/jobs/bc976d05-1dba-4d30-84c2-777793e168b1/images/2b6dae5363ccdbe83ffb599e9aae39dcf3f83eefe4cc55e7ecea50ddb44e80b3.png",
+      "description": "Illustration for empty states (e.g., when there are no transactions to show). Use with a width/height of ~200px."
+    },
+    "welcome_art": {
+      "url": "https://static.prod-images.emergentagent.com/jobs/bc976d05-1dba-4d30-84c2-777793e168b1/images/b98c21038f8b65707db1e62adc008fa6a1419d06b8ecc1f3bc04e7e1ec53bbcc.png",
+      "description": "Onboarding/Welcome screen illustration. Place prominently above the welcome message."
+    }
+  },
+  "instructions_to_main_agent": [
+    "CRITICAL: This is an Expo React Native app. You MUST strictly use React Native components (View, Text, TouchableOpacity, ScrollView, Image, etc.) and StyleSheet.create(). NO HTML tags (div, span) and NO Tailwind CSS classes.",
+    "All prominent interactive elements MUST include a 'data-testid' or 'testID' attribute in React Native for testing (e.g., testID='submit-transaction-btn').",
+    "Bilingual Requirement: Render the primary label in Sinhala and add the English translation directly underneath it. For example, <Text style={styles.sinhalaText}>වියදම්</Text><Text style={styles.englishText}>Expenses</Text>.",
+    "For the Balance Card, build a gradient-like feel or solid #7C3AED background, and place the 'premium_card_bg' Image absolutely positioned inside it with low opacity to give it a luxury texture.",
+    "Use 'lucide-react-native' or '@expo/vector-icons' for iconography.",
+    "For charts (donut/bar), use an RN-compatible charting library like 'react-native-svg' with custom logic or 'react-native-chart-kit'.",
+    "DO NOT use raw shadow strings directly on RN Views on Android; use elevation for Android and shadowOffset/Radius/Opacity for iOS. Map the provided JSON shadow properties accordingly."
+  ]
+}
