@@ -1,22 +1,34 @@
 {
   "expo": {
-    "name": "frontend",
-    "slug": "frontend",
+    "name": "ගණු දෙනු",
+    "slug": "ganu-denu",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "frontend",
-    "userInterfaceStyle": "automatic",
+    "scheme": "ganudenu",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.ganudenu.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Scan bills and receipts to track expenses",
+        "NSPhotoLibraryUsageDescription": "Select receipt photos to track expenses"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#000"
+        "backgroundColor": "#7C3AED"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.ganudenu.app",
+      "permissions": [
+        "android.permission.RECEIVE_SMS",
+        "android.permission.READ_SMS",
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -31,7 +43,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#000"
+          "backgroundColor": "#7C3AED"
         }
       ],
       "expo-web-browser"
