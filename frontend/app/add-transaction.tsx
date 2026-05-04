@@ -210,6 +210,48 @@ export default function AddTransactionScreen() {
             </View>
           </View>
 
+          {/* Merchant Quick-Pick Chips (auto-fills description) */}
+          {(() => {
+            const cat = getCategoryById(selectedCat);
+            if (!cat.merchants || cat.merchants.length === 0) return null;
+            return (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitleSi}>
+                  ඉක්මන් තේරීම් <Text style={styles.sectionTitleEn}>· Quick Picks</Text>
+                </Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ gap: 8, paddingRight: 8 }}
+                >
+                  {cat.merchants.map((m, i) => (
+                    <TouchableOpacity
+                      key={i}
+                      testID={`merchant-${cat.id}-${i}`}
+                      style={[
+                        styles.merchantChip,
+                        description === m.si && { backgroundColor: cat.color, borderColor: cat.color },
+                      ]}
+                      onPress={() => setDescription(m.si)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[
+                        styles.merchantChipSi,
+                        description === m.si && { color: '#FFFFFF' },
+                      ]}>{m.si}</Text>
+                      {m.en !== m.si && (
+                        <Text style={[
+                          styles.merchantChipEn,
+                          description === m.si && { color: 'rgba(255,255,255,0.85)' },
+                        ]}>{m.en}</Text>
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            );
+          })()}
+
           {/* Description */}
           <View style={styles.section}>
             <View style={styles.fieldHdr}>
@@ -379,6 +421,20 @@ const styles = StyleSheet.create({
   catName: { fontSize: 9, fontWeight: '600', color: COLORS.textMain, textAlign: 'center', marginTop: 3 },
   catSi: { fontSize: 11, fontWeight: '800', color: COLORS.textMain, textAlign: 'center', marginTop: 2 },
   catEn: { fontSize: 8, color: COLORS.textMuted, textAlign: 'center', marginTop: 1 },
+
+  // Merchant Quick Picks
+  merchantChip: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 22,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderWidth: 1.5,
+    borderColor: COLORS.border,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  merchantChipSi: { fontSize: 13, fontWeight: '700', color: COLORS.textMain },
+  merchantChipEn: { fontSize: 9, color: COLORS.textMuted, marginTop: 1 },
 
   input: { backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: 14, fontSize: 15, color: COLORS.textMain, borderWidth: 1, borderColor: COLORS.border },
   inputWrap: { marginBottom: 6 },
