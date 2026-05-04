@@ -28,7 +28,10 @@ const TransactionItem: React.FC<Props> = ({ transaction, onDelete }) => {
       <View style={styles.info}>
         <Text style={styles.desc} numberOfLines={1}>{transaction.description}</Text>
         <View style={styles.metaRow}>
-          <Text style={styles.catLabel}>{cat.sinhala}</Text>
+          <Text style={styles.catLabel}>
+            <Text style={styles.catLabelSi}>{cat.sinhala}</Text>
+            <Text style={styles.catLabelEn}> · {cat.english}</Text>
+          </Text>
           {transaction.from_sms && (
             <View style={styles.smsBadge}>
               <Text style={styles.smsBadgeText}>SMS</Text>
@@ -71,6 +74,8 @@ const styles = StyleSheet.create({
   desc: { fontSize: 14, fontWeight: '600', color: COLORS.textMain, marginBottom: 3 },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   catLabel: { fontSize: 11, color: COLORS.textMuted },
+  catLabelSi: { fontSize: 11, fontWeight: '700', color: COLORS.textMain },
+  catLabelEn: { fontSize: 10, color: COLORS.textMuted, fontWeight: '500' },
   smsBadge: {
     backgroundColor: '#EDE9FE',
     borderRadius: 4,

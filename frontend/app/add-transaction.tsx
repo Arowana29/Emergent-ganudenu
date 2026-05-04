@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView,
-  KeyboardAvoidingView, Platform, Alert, ActivityIndicator,
+  KeyboardAvoidingView, Platform, Alert, ActivityIndicator, Modal, Keyboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, RADIUS, formatLKR } from '../constants/theme';
 import { CATEGORIES, EXPENSE_CATEGORIES, INCOME_CATEGORIES, getCategoryById } from '../constants/categories';
 import { api } from '../services/api';
+import SinhalaKeyboard from '../components/SinhalaKeyboard';
 
 export default function AddTransactionScreen() {
   const router = useRouter();
@@ -23,6 +24,9 @@ export default function AddTransactionScreen() {
   const [description, setDescription] = useState('');
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
+  // ── Custom Sinhala keyboard state ──
+  const [siKbVisible, setSiKbVisible] = useState(false);
+  const [siKbTarget, setSiKbTarget] = useState<'description' | 'note'>('description');
 
   const fromSms = params.fromSms === '1';
 
@@ -97,6 +101,26 @@ export default function AddTransactionScreen() {
     );
   };
 
+  // ── Custom Sinhala keyboard handlers ──
+  const openSinhalaKb = (target: 'description' | 'note') => {
+    Keyboard.dismiss(); // close native keyboard
+    setSiKbTarget(target);
+    setSiKbVisible(true);
+  };
+  const kbInsert = (ch: string) => {
+    if (siKbTarget === 'description') {
+      setDescription(s => (s + ch).slice(0, 80));
+    } else {
+      setNote(s => (s + ch).slice(0, 200));
+    }
+  };
+  const kbDelete = () => {
+    if (siKbTarget === 'description') setDescription(s => s.slice(0, -1));
+    else setNote(s => s.slice(0, -1));
+  };
+  const kbSpace = () => kbInsert(' ');
+  const kbDone = () => setSiKbVisible(false);
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <KeyboardAvoidingView
@@ -161,7 +185,7 @@ export default function AddTransactionScreen() {
 
           {/* Category Grid */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>වර්ගය · Category</Text>
+            <Text style={styles.sectionTitleSi}>වර්ගය <Text style={styles.sectionTitleEn}>· Category</Text></Text>
             <View style={styles.catGrid}>
               {categories.map(cat => (
                 <TouchableOpacity
@@ -175,8 +199,11 @@ export default function AddTransactionScreen() {
                   activeOpacity={0.7}
                 >
                   <Text style={styles.catEmoji}>{cat.emoji}</Text>
-                  <Text style={[styles.catName, selectedCat === cat.id && { color: '#FFFFFF' }]} numberOfLines={1}>
+                  <Text style={[styles.catSi, selectedCat === cat.id && { color: '#FFFFFF' }]} numberOfLines={1}>
                     {cat.sinhala}
+                  </Text>
+                  <Text style={[styles.catEn, selectedCat === cat.id && { color: 'rgba(255,255,255,0.85)' }]} numberOfLines={1}>
+                    {cat.english}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -185,29 +212,52 @@ export default function AddTransactionScreen() {
 
           {/* Description */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>විස්තරය · Description</Text>
+            <View style={styles.fieldHdr}>
+              <Text style={styles.sectionTitleSi}>විස්තරය <Text style={styles.sectionTitleEn}>· Description</Text></Text>
+              <TouchableOpacity
+                testID="open-sinhala-kb-desc"
+                style={styles.kbToggleBtn}
+                onPress={() => openSinhalaKb('description')}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.kbToggleSi}>සිං</Text>
+                <Text style={styles.kbToggleEn}>Sinhala Keyboard</Text>
+              </TouchableOpacity>
+            </View>
             <View style={styles.inputWrap}>
               <TextInput
                 testID="description-input"
                 style={styles.input}
-                placeholder="eg: Keells Super, Petrol... (සිංහල හෝ English)"
+                placeholder="eg: Keells Super, ඉන්ධන..."
                 placeholderTextColor={COLORS.textMuted}
                 value={description}
                 onChangeText={setDescription}
                 maxLength={80}
+                onFocus={() => setSiKbVisible(false)}
               />
             </View>
             <View style={styles.keyboardHint}>
               <Ionicons name="language-outline" size={13} color={COLORS.primary} />
               <Text style={styles.keyboardHintTxt}>
-                සිංහල keyboard: Helakuru app install කරන්න · Switch keyboard using 🌐 key
+                "සිං" තට්ටු කර in-app සිංහල keyboard එක භාවිතා කරන්න · Tap "සිං" for built-in Sinhala
               </Text>
             </View>
           </View>
 
           {/* Note */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>සටහන · Note (optional)</Text>
+            <View style={styles.fieldHdr}>
+              <Text style={styles.sectionTitleSi}>සටහන <Text style={styles.sectionTitleEn}>· Note (optional)</Text></Text>
+              <TouchableOpacity
+                testID="open-sinhala-kb-note"
+                style={styles.kbToggleBtn}
+                onPress={() => openSinhalaKb('note')}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.kbToggleSi}>සිං</Text>
+                <Text style={styles.kbToggleEn}>Sinhala Keyboard</Text>
+              </TouchableOpacity>
+            </View>
             <TextInput
               testID="note-input"
               style={[styles.input, { minHeight: 80, textAlignVertical: 'top' }]}
@@ -217,6 +267,7 @@ export default function AddTransactionScreen() {
               onChangeText={setNote}
               multiline
               maxLength={200}
+              onFocus={() => setSiKbVisible(false)}
             />
           </View>
 
@@ -238,6 +289,45 @@ export default function AddTransactionScreen() {
           </TouchableOpacity>
           <View style={{ height: 40 }} />
         </ScrollView>
+
+        {/* ══ Custom Sinhala Keyboard Modal ══ */}
+        <Modal
+          visible={siKbVisible}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setSiKbVisible(false)}
+        >
+          <View style={styles.kbBackdrop}>
+            <TouchableOpacity
+              testID="kb-backdrop"
+              style={styles.kbBackdropTouch}
+              activeOpacity={1}
+              onPress={() => setSiKbVisible(false)}
+            />
+            <View style={styles.kbContainer}>
+              {/* Field preview */}
+              <View style={styles.kbPreview}>
+                <View style={styles.kbPreviewLeft}>
+                  <Text style={styles.kbPreviewLabel}>
+                    {siKbTarget === 'description' ? 'විස්තරය · Description' : 'සටහන · Note'}
+                  </Text>
+                  <Text style={styles.kbPreviewText} numberOfLines={2}>
+                    {(siKbTarget === 'description' ? description : note) || '...'}
+                  </Text>
+                </View>
+                <TouchableOpacity testID="kb-close-x" onPress={() => setSiKbVisible(false)} style={styles.kbCloseBtn}>
+                  <Ionicons name="chevron-down" size={22} color="#6B7280" />
+                </TouchableOpacity>
+              </View>
+              <SinhalaKeyboard
+                onInsert={kbInsert}
+                onDelete={kbDelete}
+                onSpace={kbSpace}
+                onDone={kbDone}
+              />
+            </View>
+          </View>
+        </Modal>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -271,11 +361,24 @@ const styles = StyleSheet.create({
 
   section: { paddingHorizontal: 16, marginBottom: 16 },
   sectionTitle: { fontSize: 14, fontWeight: '700', color: COLORS.textMuted, marginBottom: 10 },
+  sectionTitleSi: { fontSize: 15, fontWeight: '800', color: COLORS.textMain, marginBottom: 10 },
+  sectionTitleEn: { fontSize: 12, fontWeight: '500', color: COLORS.textMuted },
+
+  fieldHdr: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  kbToggleBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: '#5B21B6', borderRadius: 8,
+    paddingHorizontal: 10, paddingVertical: 5, marginBottom: 10,
+  },
+  kbToggleSi: { fontSize: 13, fontWeight: '800', color: '#FFFFFF' },
+  kbToggleEn: { fontSize: 9, color: 'rgba(255,255,255,0.85)', fontWeight: '600' },
 
   catGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  catItem: { width: '22%', aspectRatio: 1, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: COLORS.border },
-  catEmoji: { fontSize: 22 },
+  catItem: { width: '22%', minHeight: 88, paddingVertical: 8, paddingHorizontal: 4, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: COLORS.border },
+  catEmoji: { fontSize: 24, marginBottom: 3 },
   catName: { fontSize: 9, fontWeight: '600', color: COLORS.textMain, textAlign: 'center', marginTop: 3 },
+  catSi: { fontSize: 11, fontWeight: '800', color: COLORS.textMain, textAlign: 'center', marginTop: 2 },
+  catEn: { fontSize: 8, color: COLORS.textMuted, textAlign: 'center', marginTop: 1 },
 
   input: { backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: 14, fontSize: 15, color: COLORS.textMain, borderWidth: 1, borderColor: COLORS.border },
   inputWrap: { marginBottom: 6 },
@@ -284,4 +387,18 @@ const styles = StyleSheet.create({
 
   saveBtn: { marginHorizontal: 16, backgroundColor: COLORS.primary, borderRadius: RADIUS.xl, padding: 18, alignItems: 'center', shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 8 },
   saveBtnTxt: { color: '#FFFFFF', fontSize: 16, fontWeight: '800' },
+
+  // ── Sinhala Keyboard Modal ──
+  kbBackdrop: { flex: 1, backgroundColor: 'rgba(17,24,39,0.4)', justifyContent: 'flex-end' },
+  kbBackdropTouch: { flex: 1 },
+  kbContainer: { backgroundColor: '#F1F0F8', borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' },
+  kbPreview: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB',
+    paddingHorizontal: 14, paddingVertical: 10,
+  },
+  kbPreviewLeft: { flex: 1 },
+  kbPreviewLabel: { fontSize: 11, color: '#6B7280', fontWeight: '600', marginBottom: 2 },
+  kbPreviewText: { fontSize: 14, fontWeight: '600', color: '#1F2937' },
+  kbCloseBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' },
 });

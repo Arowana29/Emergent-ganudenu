@@ -101,3 +101,71 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: |
+  Sri Lankan Sinhala money manager app (Ganu Denu). User requested:
+  1. In-app Sinhala keyboard (Phonetic + Wijesekara modes) so users don't need to install Helakuru
+  2. Category updates: Transport→ගමන් වියදම්, Health→සෞඛ්‍යය (not Osu Sala), Education→අධ්‍යාපනය, CEB→විදුලිය, Add Water Bill→ජලය, Add Petrol→ඉන්ධන
+  3. All category labels should show Sinhala (bold) + English smaller below
+
+backend:
+  - task: "Update seed data with new categories (electricity, water, petrol)"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Replaced 'utilities' category in seed with separate 'electricity' (විදුලිය/CEB) and 'water' (ජලය/Water Bill). Added 'petrol' (ඉන්ධන) seed entries. Reseeded DB returned 34 transactions. Endpoints unchanged."
+        - working: true
+          agent: "testing"
+          comment: "All 5 backend tests passed against external URL https://ganu-launch.preview.emergentagent.com/api. (1) POST /api/seed → {seeded:34, message:'Demo data loaded!'} ✓. (2) GET /api/transactions?month=5&year=2026 → 12 txs, categories include electricity/water/petrol/transport, NO 'utilities' ✓. (3) GET /api/stats?month=5&year=2026 → income=120000, expenses=60650, balance=59350, categories breakdown {education, water, health, transport, petrol, housing, electricity, food}, pct sums to 100 ✓. (4) POST /api/transactions {amount:500, category:'water', description:'Test ජලය'} → 200 OK, Sinhala unicode preserved, id returned, then cleaned up via DELETE ✓. (5) GET /api/stats/trends → 6 months returned with correct labels/income/expenses, last entry matches current month ✓. Test script at /app/backend_test.py."
+
+frontend:
+  - task: "Custom in-app Sinhala Keyboard with Phonetic + Wijesekara toggle"
+    implemented: true
+    working: true
+    file: "/app/frontend/components/SinhalaKeyboard.tsx, /app/frontend/app/add-transaction.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Verified via screenshot tool: Tapping 'සිං' button in Description field opens bottom-sheet keyboard. Phonetic mode shows Sinhala letters with Singlish hints (ka, kha, ga). Tapping consonant reveals vowel modifier bar (ක + ස්වර → කා, කැ, කි, etc). Inserted character appears in preview. Wijesekara mode toggle available. Standalone vowels row shown."
+
+  - task: "Updated categories with proper Sinhala names"
+    implemented: true
+    working: true
+    file: "/app/frontend/constants/categories.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Verified via screenshot. Categories now display: ආහාර/Food, නිවාස/Housing, ගමන් වියදම්/Transport, ඉන්ධන/Petrol (NEW), විදුලිය/Electricity-CEB, ජලය/Water Bill (NEW), සෞඛ්‍යය/Health (changed emoji from 💊 to 🏥), අධ්‍යාපනය/Education. All show Sinhala bold + English smaller below."
+
+metadata:
+  created_by: "main_agent"
+  version: "1.1"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Backend seed endpoint with new categories"
+    - "GET /api/transactions returns correct category strings"
+    - "GET /api/stats aggregates new electricity/water/petrol categories properly"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+    - agent: "main"
+      message: "Implemented in-app Sinhala Keyboard (Phonetic + Wijesekara). Updated all categories per user request (Sinhala names + emoji fixes + new water/petrol). Reseeded DB. Frontend verified working via screenshots. Backend needs quick test to ensure /api/seed and /api/stats work with new category IDs."
+    - agent: "testing"
+      message: "Backend testing complete — all 5/5 endpoints pass against the public URL. POST /api/seed returns {seeded:34, message:'Demo data loaded!'}. GET /api/transactions for current month returns 12 txs containing the new categories (electricity, water, petrol, transport) with NO 'utilities' present. GET /api/stats returns correct income/expenses/balance and a categories breakdown that includes electricity/water/petrol with pct summing to 100. POST /api/transactions with Sinhala unicode description ('Test ජලය') succeeds and unicode is preserved round-trip. GET /api/stats/trends returns 6 months ending at the current month. Test file: /app/backend_test.py. No issues found — main agent can summarise and finish."

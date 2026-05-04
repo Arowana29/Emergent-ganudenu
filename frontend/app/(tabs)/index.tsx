@@ -198,7 +198,7 @@ export default function HomeScreen() {
               <Text style={[styles.catSi, selectedCat === 'all' && { color: '#fff' }]}>සියල්ල</Text>
               <Text style={[styles.catEn, selectedCat === 'all' && { color: 'rgba(255,255,255,0.7)' }]}>All</Text>
             </TouchableOpacity>
-            {CATEGORIES.filter(c => !c.isIncome).slice(0, 12).map(cat => (
+            {CATEGORIES.filter(c => !c.isIncome).map(cat => (
               <TouchableOpacity
                 key={cat.id}
                 testID={`cat-chip-${cat.id}`}
