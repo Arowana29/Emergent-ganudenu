@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  ActivityIndicator, RefreshControl, Modal, Alert, Image,
+  ActivityIndicator, RefreshControl, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { COLORS, RADIUS, formatLKR, MONTHS_SI, MONTHS_EN } from '../../constants/theme';
@@ -12,9 +11,12 @@ import { CATEGORIES, getCategoryById } from '../../constants/categories';
 import { api, Transaction, MonthStats } from '../../services/api';
 import TransactionItem from '../../components/TransactionItem';
 
+const DEEP_PURPLE = '#4C1D95';
+const MID_PURPLE = '#5B21B6';
+
 const DEMO_SMS = {
   bank: 'BOC Bank',
-  raw: 'BOC Bank: Debit Rs.3,500.00. Keells Super Colombo. Ref:TXN2847B. Available: Rs.62,300.00',
+  raw: 'Debit Rs.3,500.00. Keells Super Colombo. Ref:TXN2847B',
   amount: 3500,
   merchant: 'Keells Super Colombo',
   category: 'food',
@@ -28,7 +30,7 @@ export default function HomeScreen() {
   const [selectedCat, setSelectedCat] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [showSms, setShowSms] = useState(false);
+  const [showSms, setShowSms] = useState(true);
 
   const load = useCallback(async () => {
     try {
@@ -51,21 +53,15 @@ export default function HomeScreen() {
 
   const greeting = () => {
     const h = now.getHours();
-    if (h < 12) return { si: 'ශුභ උදෑසනක්', en: 'Good morning' };
-    if (h < 17) return { si: 'ශුභ දහවලක්', en: 'Good afternoon' };
-    return { si: 'ශුභ සන්ධ්‍යාවක්', en: 'Good evening' };
+    if (h < 12) return 'ශුභ උදෑසනක් 🙏';
+    if (h < 17) return 'ශුභ දහවලක් 🙏';
+    return 'ශුභ සන්ධ්‍යාවක් 🙏';
   };
 
   const handleDelete = (id: string) => {
     Alert.alert('ගනුදෙනු මකන්නද?', 'Delete this transaction?', [
       { text: 'නැහැ · Cancel', style: 'cancel' },
-      {
-        text: 'ඔව් · Delete', style: 'destructive',
-        onPress: async () => {
-          await api.deleteTransaction(id);
-          load();
-        },
-      },
+      { text: 'ඔව් · Delete', style: 'destructive', onPress: async () => { await api.deleteTransaction(id); load(); } },
     ]);
   };
 
@@ -73,283 +69,240 @@ export default function HomeScreen() {
     ? transactions.slice(0, 10)
     : transactions.filter(t => t.category === selectedCat).slice(0, 10);
 
-  const g = greeting();
   const monthLabel = `${MONTHS_SI[now.getMonth()]} ${now.getFullYear()}`;
   const monthLabelEn = `${MONTHS_EN[now.getMonth()]} ${now.getFullYear()}`;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFFFFF" />}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.greeting}>{g.si} · {g.en} 🙏</Text>
-            <Text style={styles.appName}>ගණු දෙනු</Text>
-            <Text style={styles.appNameEn}>Ganu Denu · Money Manager</Text>
-          </View>
-          <View style={styles.headerIcons}>
-            <TouchableOpacity
-              testID="sms-demo-btn"
-              style={styles.iconBtn}
-              onPress={() => setShowSms(true)}
-            >
-              <Ionicons name="mail-outline" size={22} color={COLORS.primary} />
-            </TouchableOpacity>
-            <TouchableOpacity testID="notification-btn" style={styles.iconBtn}>
-              <Ionicons name="notifications-outline" size={22} color={COLORS.textMuted} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Balance Card */}
-        <LinearGradient
-          colors={['#7C3AED', '#5B21B6']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.balCard}
-        >
-          <Image
-            source={{ uri: 'https://static.prod-images.emergentagent.com/jobs/bc976d05-1dba-4d30-84c2-777793e168b1/images/77af85ae5d9736ef631dc386d91041594e842114add44a4a1b06809d387385b2.png' }}
-            style={styles.cardBg}
-          />
-          <View style={styles.cardContent}>
-            <Text style={styles.balLabel}>මාසික ශේෂය</Text>
-            <Text style={styles.balLabelEn}>{monthLabel} · {monthLabelEn}</Text>
-            {loading ? (
-              <ActivityIndicator color="#fff" size="large" style={{ marginVertical: 12 }} />
-            ) : (
-              <Text testID="balance-amount" style={styles.balAmount}>
-                {formatLKR(stats?.balance ?? 0)}
-              </Text>
-            )}
-            <View style={styles.incExpRow}>
-              <View style={styles.incExpItem}>
-                <View style={styles.incDot} />
-                <View>
-                  <Text style={styles.incExpLabel}>ලැබීම් · Income</Text>
-                  <Text style={styles.incExpAmount}>{formatLKR(stats?.income ?? 0)}</Text>
-                </View>
-              </View>
-              <View style={styles.divider} />
-              <View style={styles.incExpItem}>
-                <View style={styles.expDot} />
-                <View>
-                  <Text style={styles.incExpLabel}>වියදම් · Expenses</Text>
-                  <Text style={styles.incExpAmount}>{formatLKR(stats?.expenses ?? 0)}</Text>
-                </View>
-              </View>
+        {/* ══ DEEP PURPLE HEADER ══ */}
+        <View style={styles.headerZone}>
+          {/* Title Row */}
+          <View style={styles.titleRow}>
+            <View>
+              <Text style={styles.greeting}>{greeting()}</Text>
+              <Text style={styles.appTitle}>ගණු දෙනු</Text>
+              <Text style={styles.appTitleEn}>Ganu Denu · Money Manager</Text>
             </View>
-          </View>
-        </LinearGradient>
-
-        {/* Stats Row */}
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Text style={styles.statNum}>{stats?.total_count ?? 0}</Text>
-            <Text style={styles.statLbl}>ගනුදෙනු</Text>
-            <Text style={styles.statLblEn}>Transactions</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={[styles.statNum, { color: COLORS.primary }]}>{stats?.sms_count ?? 0}</Text>
-            <Text style={styles.statLbl}>SMS සිට</Text>
-            <Text style={styles.statLblEn}>Auto-SMS</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={[styles.statNum, { color: COLORS.accent }]}>
-              {stats?.categories?.length ?? 0}
-            </Text>
-            <Text style={styles.statLbl}>වර්ගය</Text>
-            <Text style={styles.statLblEn}>Categories</Text>
-          </View>
-        </View>
-
-        {/* Category Filter */}
-        <Text style={styles.sectionTitle}>
-          <Text style={styles.sectionTitleSi}>මෑත ගනුදෙනු  </Text>
-          <Text style={styles.sectionTitleEn}>Recent Transactions</Text>
-        </Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.chipScroll}
-          contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
-        >
-          <TouchableOpacity
-            testID="cat-chip-all"
-            style={[styles.chip, selectedCat === 'all' && styles.chipActive]}
-            onPress={() => setSelectedCat('all')}
-          >
-            <Text style={[styles.chipTxt, selectedCat === 'all' && styles.chipTxtActive]}>📋 සියල්ල</Text>
-          </TouchableOpacity>
-          {CATEGORIES.slice(0, 10).map(cat => (
-            <TouchableOpacity
-              key={cat.id}
-              testID={`cat-chip-${cat.id}`}
-              style={[styles.chip, selectedCat === cat.id && styles.chipActive, selectedCat === cat.id && { backgroundColor: cat.color }]}
-              onPress={() => setSelectedCat(cat.id)}
-            >
-              <Text style={[styles.chipTxt, selectedCat === cat.id && styles.chipTxtActive]}>
-                {cat.emoji} {cat.sinhala}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        {/* Transactions List */}
-        <View style={styles.listWrap}>
-          {loading ? (
-            <ActivityIndicator color={COLORS.primary} style={{ marginTop: 32 }} />
-          ) : filtered.length === 0 ? (
-            <View style={styles.emptyState} testID="empty-state">
-              <Image
-                source={{ uri: 'https://static.prod-images.emergentagent.com/jobs/bc976d05-1dba-4d30-84c2-777793e168b1/images/2b6dae5363ccdbe83ffb599e9aae39dcf3f83eefe4cc55e7ecea50ddb44e80b3.png' }}
-                style={styles.emptyImg}
-              />
-              <Text style={styles.emptyTitle}>ගනුදෙනු නැහැ</Text>
-              <Text style={styles.emptySubtitle}>No transactions yet</Text>
-              <TouchableOpacity
-                testID="add-first-btn"
-                style={styles.addFirstBtn}
-                onPress={() => router.push('/add-transaction')}
-              >
-                <Text style={styles.addFirstTxt}>+ ගනුදෙනු එකතු කරන්න · Add Transaction</Text>
+            <View style={styles.iconRow}>
+              <TouchableOpacity testID="search-btn" style={styles.iconCircle}>
+                <Ionicons name="search" size={20} color={DEEP_PURPLE} />
+              </TouchableOpacity>
+              <TouchableOpacity testID="notif-btn" style={styles.iconCircle}>
+                <Ionicons name="notifications" size={20} color={DEEP_PURPLE} />
               </TouchableOpacity>
             </View>
-          ) : (
-            filtered.map(t => (
-              <TransactionItem key={t.id} transaction={t} onDelete={handleDelete} />
-            ))
-          )}
-        </View>
-        <View style={{ height: 100 }} />
-      </ScrollView>
+          </View>
 
-      {/* SMS Demo Bottom Sheet */}
-      <Modal visible={showSms} transparent animationType="slide">
-        <TouchableOpacity style={styles.overlay} onPress={() => setShowSms(false)} activeOpacity={1}>
-          <TouchableOpacity activeOpacity={1} onPress={() => {}}>
-            <View style={styles.sheet}>
-              <View style={styles.sheetHandle} />
-              <View style={styles.sheetHeader}>
-                <View style={styles.smsBadgeWrap}>
-                  <Ionicons name="mail" size={20} color={COLORS.accentDark} />
-                </View>
-                <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={styles.sheetTitle}>📩 SMS ගනුදෙනු හඳුනා ගැනිණි</Text>
-                  <Text style={styles.sheetSubtitle}>Transaction Detected · {DEMO_SMS.bank}</Text>
-                </View>
+          {/* Balance */}
+          <View style={styles.balZone}>
+            <Text style={styles.balLabelSi}>මාසික ශේෂය</Text>
+            <Text style={styles.balLabelEn}>Monthly Balance · {monthLabel}</Text>
+            {loading
+              ? <ActivityIndicator color="#fff" size="large" style={{ marginVertical: 10 }} />
+              : <Text testID="balance-amount" style={styles.balAmount}>
+                  රු. {Math.round(stats?.balance ?? 0).toLocaleString('en-US')}
+                </Text>
+            }
+            <View style={styles.incExpRow}>
+              <View style={styles.incBox}>
+                <Text style={styles.boxTopLabel}>ලැබීම් · Income</Text>
+                <Text style={styles.incAmt}>
+                  රු. {Math.round(stats?.income ?? 0).toLocaleString('en-US')}
+                </Text>
               </View>
-              <View style={styles.smsRaw}>
-                <Text style={styles.smsRawTxt}>{DEMO_SMS.raw}</Text>
-              </View>
-              <Text style={styles.smsAmount}>{formatLKR(DEMO_SMS.amount)}</Text>
-              <Text style={styles.smsMerchant}>{DEMO_SMS.merchant}</Text>
-              <View style={styles.sheetBtns}>
-                <TouchableOpacity
-                  testID="sms-add-btn"
-                  style={styles.sheetAddBtn}
-                  onPress={() => {
-                    setShowSms(false);
-                    router.push({
-                      pathname: '/add-transaction',
-                      params: {
-                        smsAmount: DEMO_SMS.amount,
-                        smsCategory: DEMO_SMS.category,
-                        smsDesc: DEMO_SMS.merchant,
-                        smsRaw: DEMO_SMS.raw,
-                        fromSms: '1',
-                      },
-                    });
-                  }}
-                >
-                  <Text style={styles.sheetAddTxt}>+ වියදමට එකතු කරන්න · Add Expense</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  testID="sms-dismiss-btn"
-                  style={styles.sheetDismissBtn}
-                  onPress={() => setShowSms(false)}
-                >
-                  <Text style={styles.sheetDismissTxt}>ඉවත් කරන්න · Dismiss</Text>
-                </TouchableOpacity>
+              <View style={styles.expBox}>
+                <Text style={styles.boxTopLabel}>වියදම් · Expenses</Text>
+                <Text style={styles.expAmt}>
+                  රු. {Math.round(stats?.expenses ?? 0).toLocaleString('en-US')}
+                </Text>
               </View>
             </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
+          </View>
+        </View>
+
+        {/* ══ LIGHT CONTENT ══ */}
+        <View style={styles.contentZone}>
+
+          {/* SMS Banner - always visible inline */}
+          {showSms && (
+            <View testID="sms-banner" style={styles.smsBanner}>
+              <View style={styles.smsIconBox}>
+                <Ionicons name="briefcase" size={22} color="#D97706" />
+              </View>
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text style={styles.smsTitleSi}>SMS ගනුදෙනු හඳුනා ගැනීම</Text>
+                <Text style={styles.smsTitleEn}>Transaction Detected · {DEMO_SMS.bank}</Text>
+                <Text style={styles.smsBodyTxt}>{DEMO_SMS.raw}</Text>
+                <View style={styles.smsBtnRow}>
+                  <TouchableOpacity
+                    testID="sms-add-btn"
+                    style={styles.smsAddBtn}
+                    onPress={() => {
+                      setShowSms(false);
+                      router.push({
+                        pathname: '/add-transaction',
+                        params: { smsAmount: DEMO_SMS.amount, smsCategory: DEMO_SMS.category, smsDesc: DEMO_SMS.merchant, fromSms: '1' },
+                      });
+                    }}
+                  >
+                    <Text style={styles.smsAddTxt}>+ වියදමට එකතු කරන්න</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity testID="sms-dismiss-btn" style={styles.smsDismissBtn} onPress={() => setShowSms(false)}>
+                    <Text style={styles.smsDismissTxt}>ඉවත් කරන්න</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* Stats Row */}
+          <View style={styles.statsRow}>
+            <View style={styles.statCard}>
+              <Text style={styles.statNum}>{stats?.total_count ?? 0}</Text>
+              <Text style={styles.statSi}>ගනුදෙනු</Text>
+              <Text style={styles.statEn}>Transactions</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={[styles.statNum, { color: MID_PURPLE }]}>{stats?.sms_count ?? 0}</Text>
+              <Text style={styles.statSi}>SMS සිට</Text>
+              <Text style={styles.statEn}>Auto-detected</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={[styles.statNum, { color: '#F59E0B' }]}>{stats?.categories?.length ?? 0}</Text>
+              <Text style={styles.statSi}>ශ්‍රේණිය</Text>
+              <Text style={styles.statEn}>Categories</Text>
+            </View>
+          </View>
+
+          {/* Categories Section */}
+          <View style={styles.secHdr}>
+            <Text style={styles.secSi}>ශ්‍රේණිය</Text>
+            <Text style={styles.secEn}>Categories</Text>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 16, gap: 10, paddingBottom: 4 }}
+            style={{ marginBottom: 20 }}
+          >
+            <TouchableOpacity
+              testID="cat-all"
+              style={[styles.catChip, selectedCat === 'all' && styles.catChipSel]}
+              onPress={() => setSelectedCat('all')}
+            >
+              <Text style={styles.catEmoji}>📋</Text>
+              <Text style={[styles.catSi, selectedCat === 'all' && { color: '#fff' }]}>සියල්ල</Text>
+              <Text style={[styles.catEn, selectedCat === 'all' && { color: 'rgba(255,255,255,0.7)' }]}>All</Text>
+            </TouchableOpacity>
+            {CATEGORIES.filter(c => !c.isIncome).slice(0, 12).map(cat => (
+              <TouchableOpacity
+                key={cat.id}
+                testID={`cat-chip-${cat.id}`}
+                style={[styles.catChip, selectedCat === cat.id && { backgroundColor: cat.color, borderColor: cat.color }]}
+                onPress={() => setSelectedCat(cat.id)}
+              >
+                <Text style={styles.catEmoji}>{cat.emoji}</Text>
+                <Text style={[styles.catSi, selectedCat === cat.id && { color: '#fff' }]}>{cat.sinhala}</Text>
+                <Text style={[styles.catEn, selectedCat === cat.id && { color: 'rgba(255,255,255,0.7)' }]}>{cat.english}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          {/* Transactions */}
+          <View style={styles.secHdr}>
+            <Text style={styles.secSi}>මෑත ගනුදෙනු</Text>
+            <Text style={styles.secEn}>Recent Transactions</Text>
+          </View>
+          <View style={{ paddingHorizontal: 16 }}>
+            {loading ? (
+              <ActivityIndicator color={MID_PURPLE} style={{ marginTop: 32 }} />
+            ) : filtered.length === 0 ? (
+              <View style={styles.emptyBox} testID="empty-state">
+                <Text style={styles.emptyEmoji}>💰</Text>
+                <Text style={styles.emptyTitle}>ගනුදෙනු නැහැ</Text>
+                <Text style={styles.emptySubtitle}>No transactions yet</Text>
+                <TouchableOpacity testID="add-first-btn" style={styles.addFirstBtn} onPress={() => router.push('/add-transaction')}>
+                  <Text style={styles.addFirstTxt}>+ ගනුදෙනු එකතු කරන්න · Add Transaction</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              filtered.map(t => <TransactionItem key={t.id} transaction={t} onDelete={handleDelete} />)
+            )}
+          </View>
+          <View style={{ height: 100 }} />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: COLORS.bg },
-  scroll: { flex: 1 },
-  content: { paddingBottom: 24 },
+  safe: { flex: 1, backgroundColor: DEEP_PURPLE },
 
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8 },
-  greeting: { fontSize: 12, color: COLORS.textMuted, marginBottom: 2 },
-  appName: { fontSize: 26, fontWeight: '800', color: COLORS.textMain },
-  appNameEn: { fontSize: 11, color: COLORS.textMuted, marginTop: 1 },
-  headerIcons: { flexDirection: 'row', gap: 8, marginTop: 8 },
-  iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 },
+  // ── Header Zone (deep purple) ──
+  headerZone: { backgroundColor: DEEP_PURPLE, paddingBottom: 28 },
+  titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingHorizontal: 20, paddingTop: 10, marginBottom: 18 },
+  greeting: { fontSize: 12, color: 'rgba(255,255,255,0.65)', marginBottom: 3 },
+  appTitle: { fontSize: 30, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.5 },
+  appTitleEn: { fontSize: 11, color: 'rgba(255,255,255,0.55)', marginTop: 2 },
+  iconRow: { flexDirection: 'row', gap: 10, marginTop: 8 },
+  iconCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
 
-  balCard: { marginHorizontal: 16, marginBottom: 16, borderRadius: RADIUS.xxl, overflow: 'hidden', minHeight: 160 },
-  cardBg: { position: 'absolute', width: '100%', height: '100%', opacity: 0.12, resizeMode: 'cover' },
-  cardContent: { padding: 22 },
-  balLabel: { fontSize: 13, color: 'rgba(255,255,255,0.8)', marginBottom: 2 },
-  balLabelEn: { fontSize: 11, color: 'rgba(255,255,255,0.6)', marginBottom: 6 },
-  balAmount: { fontSize: 36, fontWeight: '800', color: '#FFFFFF', marginBottom: 16 },
-  incExpRow: { flexDirection: 'row', alignItems: 'center' },
-  incExpItem: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  incDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#6EE7B7' },
-  expDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#FCA5A5' },
-  incExpLabel: { fontSize: 10, color: 'rgba(255,255,255,0.7)' },
-  incExpAmount: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
-  divider: { width: 1, height: 30, backgroundColor: 'rgba(255,255,255,0.2)', marginHorizontal: 12 },
+  // Balance
+  balZone: { paddingHorizontal: 20 },
+  balLabelSi: { fontSize: 14, color: 'rgba(255,255,255,0.75)', marginBottom: 2 },
+  balLabelEn: { fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: 6 },
+  balAmount: { fontSize: 42, fontWeight: '800', color: '#FFFFFF', marginBottom: 16 },
+  incExpRow: { flexDirection: 'row', gap: 12 },
+  incBox: { flex: 1, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
+  expBox: { flex: 1, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
+  boxTopLabel: { fontSize: 11, color: 'rgba(255,255,255,0.7)', marginBottom: 5 },
+  incAmt: { fontSize: 18, fontWeight: '800', color: '#4ADE80' },
+  expAmt: { fontSize: 18, fontWeight: '800', color: '#F87171' },
 
+  // ── Content Zone (light) ──
+  contentZone: { backgroundColor: '#F5F3FF', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 20, minHeight: 600 },
+
+  // SMS Banner
+  smsBanner: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: '#FFFBEB', borderWidth: 1.5, borderColor: '#FCD34D', borderRadius: 16, padding: 14, marginHorizontal: 16, marginBottom: 16 },
+  smsIconBox: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#FEF3C7', alignItems: 'center', justifyContent: 'center' },
+  smsTitleSi: { fontSize: 13, fontWeight: '800', color: '#92400E', marginBottom: 1 },
+  smsTitleEn: { fontSize: 11, color: '#B45309', marginBottom: 5 },
+  smsBodyTxt: { fontSize: 11, color: '#78350F', lineHeight: 16, marginBottom: 10, fontFamily: 'monospace' },
+  smsBtnRow: { flexDirection: 'row', gap: 8 },
+  smsAddBtn: { flex: 1, backgroundColor: '#F59E0B', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, alignItems: 'center' },
+  smsAddTxt: { color: '#FFFFFF', fontWeight: '800', fontSize: 11 },
+  smsDismissBtn: { backgroundColor: '#FEF3C7', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: '#FCD34D' },
+  smsDismissTxt: { color: '#92400E', fontWeight: '600', fontSize: 11 },
+
+  // Stats
   statsRow: { flexDirection: 'row', marginHorizontal: 16, gap: 10, marginBottom: 20 },
-  statCard: { flex: 1, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: 14, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
-  statNum: { fontSize: 22, fontWeight: '800', color: COLORS.textMain },
-  statLbl: { fontSize: 11, fontWeight: '600', color: COLORS.textMain, marginTop: 2 },
-  statLblEn: { fontSize: 9, color: COLORS.textMuted, marginTop: 1 },
+  statCard: { flex: 1, backgroundColor: '#FFFFFF', borderRadius: 14, padding: 12, alignItems: 'center', shadowColor: MID_PURPLE, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 3 },
+  statNum: { fontSize: 26, fontWeight: '800', color: '#1F2937' },
+  statSi: { fontSize: 12, fontWeight: '700', color: '#1F2937', marginTop: 2 },
+  statEn: { fontSize: 9, color: '#9CA3AF', marginTop: 1 },
 
-  sectionTitle: { paddingHorizontal: 20, marginBottom: 10 },
-  sectionTitleSi: { fontSize: 16, fontWeight: '700', color: COLORS.textMain },
-  sectionTitleEn: { fontSize: 12, color: COLORS.textMuted },
+  // Section Headers
+  secHdr: { paddingHorizontal: 20, marginBottom: 12 },
+  secSi: { fontSize: 18, fontWeight: '800', color: '#1F2937' },
+  secEn: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
 
-  chipScroll: { marginBottom: 14 },
-  chip: { backgroundColor: COLORS.inputBg, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 },
-  chipActive: { backgroundColor: COLORS.primary },
-  chipTxt: { fontSize: 13, color: COLORS.textMuted, fontWeight: '500' },
-  chipTxtActive: { color: '#FFFFFF', fontWeight: '700' },
+  // Category Chips (LARGE squares like reference)
+  catChip: { width: 78, minHeight: 86, backgroundColor: '#FFFFFF', borderRadius: 16, alignItems: 'center', justifyContent: 'center', paddingVertical: 12, paddingHorizontal: 4, borderWidth: 1.5, borderColor: '#E5E7EB', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
+  catChipSel: { backgroundColor: MID_PURPLE, borderColor: MID_PURPLE },
+  catEmoji: { fontSize: 26, marginBottom: 6 },
+  catSi: { fontSize: 11, fontWeight: '700', color: '#1F2937', textAlign: 'center' },
+  catEn: { fontSize: 8, color: '#9CA3AF', textAlign: 'center', marginTop: 2 },
 
-  listWrap: { paddingHorizontal: 16 },
-  emptyState: { alignItems: 'center', paddingVertical: 40 },
-  emptyImg: { width: 160, height: 160, resizeMode: 'contain', opacity: 0.7 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: COLORS.textMain, marginTop: 16 },
-  emptySubtitle: { fontSize: 13, color: COLORS.textMuted, marginTop: 4 },
-  addFirstBtn: { marginTop: 20, backgroundColor: COLORS.primary, borderRadius: RADIUS.lg, paddingHorizontal: 24, paddingVertical: 14 },
+  // Empty state
+  emptyBox: { alignItems: 'center', paddingVertical: 48 },
+  emptyEmoji: { fontSize: 60 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#1F2937', marginTop: 12 },
+  emptySubtitle: { fontSize: 13, color: '#9CA3AF', marginTop: 4 },
+  addFirstBtn: { marginTop: 20, backgroundColor: MID_PURPLE, borderRadius: 14, paddingHorizontal: 24, paddingVertical: 14 },
   addFirstTxt: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
-
-  // SMS Sheet
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, paddingBottom: 36 },
-  sheetHandle: { width: 40, height: 4, backgroundColor: COLORS.border, borderRadius: 2, alignSelf: 'center', marginBottom: 20 },
-  sheetHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
-  smsBadgeWrap: { width: 42, height: 42, borderRadius: 12, backgroundColor: '#FEF3C7', alignItems: 'center', justifyContent: 'center' },
-  sheetTitle: { fontSize: 15, fontWeight: '700', color: COLORS.textMain },
-  sheetSubtitle: { fontSize: 12, color: COLORS.textMuted, marginTop: 2 },
-  smsRaw: { backgroundColor: COLORS.inputBg, borderRadius: RADIUS.md, padding: 12, marginBottom: 16 },
-  smsRawTxt: { fontFamily: 'monospace', fontSize: 11, color: COLORS.textMuted, lineHeight: 17 },
-  smsAmount: { fontSize: 28, fontWeight: '800', color: COLORS.primary, textAlign: 'center', marginBottom: 4 },
-  smsMerchant: { fontSize: 14, color: COLORS.textMuted, textAlign: 'center', marginBottom: 20 },
-  sheetBtns: { gap: 10 },
-  sheetAddBtn: { backgroundColor: COLORS.primary, borderRadius: RADIUS.lg, padding: 16, alignItems: 'center' },
-  sheetAddTxt: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
-  sheetDismissBtn: { backgroundColor: COLORS.inputBg, borderRadius: RADIUS.lg, padding: 14, alignItems: 'center' },
-  sheetDismissTxt: { color: COLORS.textMuted, fontWeight: '600', fontSize: 14 },
 });

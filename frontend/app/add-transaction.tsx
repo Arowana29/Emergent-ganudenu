@@ -186,15 +186,23 @@ export default function AddTransactionScreen() {
           {/* Description */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>විස්තරය · Description</Text>
-            <TextInput
-              testID="description-input"
-              style={styles.input}
-              placeholder="eg: Keells Super, Petrol..."
-              placeholderTextColor={COLORS.textMuted}
-              value={description}
-              onChangeText={setDescription}
-              maxLength={80}
-            />
+            <View style={styles.inputWrap}>
+              <TextInput
+                testID="description-input"
+                style={styles.input}
+                placeholder="eg: Keells Super, Petrol... (සිංහල හෝ English)"
+                placeholderTextColor={COLORS.textMuted}
+                value={description}
+                onChangeText={setDescription}
+                maxLength={80}
+              />
+            </View>
+            <View style={styles.keyboardHint}>
+              <Ionicons name="language-outline" size={13} color={COLORS.primary} />
+              <Text style={styles.keyboardHintTxt}>
+                සිංහල keyboard: Helakuru app install කරන්න · Switch keyboard using 🌐 key
+              </Text>
+            </View>
           </View>
 
           {/* Note */}
@@ -270,6 +278,9 @@ const styles = StyleSheet.create({
   catName: { fontSize: 9, fontWeight: '600', color: COLORS.textMain, textAlign: 'center', marginTop: 3 },
 
   input: { backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: 14, fontSize: 15, color: COLORS.textMain, borderWidth: 1, borderColor: COLORS.border },
+  inputWrap: { marginBottom: 6 },
+  keyboardHint: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: COLORS.primaryLight, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7 },
+  keyboardHintTxt: { fontSize: 10, color: COLORS.primary, fontWeight: '500', flex: 1, lineHeight: 14 },
 
   saveBtn: { marginHorizontal: 16, backgroundColor: COLORS.primary, borderRadius: RADIUS.xl, padding: 18, alignItems: 'center', shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 8 },
   saveBtnTxt: { color: '#FFFFFF', fontSize: 16, fontWeight: '800' },
