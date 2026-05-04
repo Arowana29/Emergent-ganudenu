@@ -193,12 +193,43 @@ export default function SettingsScreen() {
         <SectionTitle si="යෙදුම ගැන" en="About App" />
         <View style={styles.card}>
           <View style={styles.aboutWrap}>
-            <Text style={styles.aboutAppName}>🏠 ගණු දෙනු</Text>
+            <Text style={styles.aboutAppName}>Ganu Denu</Text>
+            <Text style={styles.aboutSinhala}>ගණු දෙනු · Money Manager</Text>
             <Text style={styles.aboutVersion}>Version {VERSION}</Text>
             <Text style={styles.aboutTagline}>Made with ❤️ for Sri Lanka 🇱🇰</Text>
             <Text style={styles.aboutDesc}>
               Sinhala money manager for Sri Lankan families.{'\n'}
               ශ්‍රී ලාංකීය පවුල් සඳහා සිංහල මුදල් කළමනාකරු.
+            </Text>
+
+            <View style={styles.divider} />
+
+            <Text style={styles.contactTitle}>📬 Contact / සම්බන්ධ වන්න</Text>
+            <TouchableOpacity
+              testID="email-business-btn"
+              style={styles.contactRow}
+              onPress={() => Linking.openURL('mailto:sismathtrading@kamfa.net')}
+            >
+              <Ionicons name="briefcase-outline" size={16} color={COLORS.primary} />
+              <Text style={styles.contactEmail}>sismathtrading@kamfa.net</Text>
+              <Text style={styles.contactBadge}>Business</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              testID="email-gmail-btn"
+              style={styles.contactRow}
+              onPress={() => Linking.openURL('mailto:silshabir@gmail.com')}
+            >
+              <Ionicons name="mail-outline" size={16} color="#EA4335" />
+              <Text style={styles.contactEmail}>silshabir@gmail.com</Text>
+              <Text style={[styles.contactBadge, { backgroundColor: '#FDECEA', color: '#EA4335' }]}>Gmail</Text>
+            </TouchableOpacity>
+
+            <View style={styles.divider} />
+
+            <Text style={styles.copyright}>
+              © 2025 Ganu Denu · ගණු දෙනු{'\n'}
+              All Rights Reserved · සියලු හිමිකම් ඇවිරිණි{'\n'}
+              Developed in UAE 🇦🇪 for Sri Lanka 🇱🇰
             </Text>
           </View>
         </View>
@@ -233,8 +264,15 @@ const styles = StyleSheet.create({
   firebaseBtnTxt: { color: COLORS.primary, fontWeight: '700', fontSize: 13 },
 
   aboutWrap: { alignItems: 'center', padding: 24 },
-  aboutAppName: { fontSize: 22, fontWeight: '800', color: COLORS.textMain, marginBottom: 4 },
+  aboutAppName: { fontSize: 24, fontWeight: '800', color: COLORS.primary, marginBottom: 2 },
+  aboutSinhala: { fontSize: 14, fontWeight: '600', color: COLORS.textMuted, marginBottom: 6 },
   aboutVersion: { fontSize: 13, color: COLORS.textMuted, marginBottom: 6 },
   aboutTagline: { fontSize: 14, fontWeight: '600', color: COLORS.accent, marginBottom: 10 },
-  aboutDesc: { fontSize: 12, color: COLORS.textMuted, textAlign: 'center', lineHeight: 18 },
+  aboutDesc: { fontSize: 12, color: COLORS.textMuted, textAlign: 'center', lineHeight: 18, marginBottom: 4 },
+  divider: { width: '100%', height: 1, backgroundColor: COLORS.border, marginVertical: 16 },
+  contactTitle: { fontSize: 14, fontWeight: '700', color: COLORS.textMain, marginBottom: 10, alignSelf: 'flex-start' },
+  contactRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8, alignSelf: 'flex-start' },
+  contactEmail: { fontSize: 13, color: COLORS.primary, fontWeight: '600', textDecorationLine: 'underline' },
+  contactBadge: { backgroundColor: COLORS.primaryLight, color: COLORS.primary, fontSize: 10, fontWeight: '700', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 },
+  copyright: { fontSize: 11, color: COLORS.textMuted, textAlign: 'center', lineHeight: 18 },
 });

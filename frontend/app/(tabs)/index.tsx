@@ -84,8 +84,8 @@ export default function HomeScreen() {
           <View style={styles.titleRow}>
             <View>
               <Text style={styles.greeting}>{greeting()}</Text>
-              <Text style={styles.appTitle}>ගණු දෙනු</Text>
-              <Text style={styles.appTitleEn}>Ganu Denu · Money Manager</Text>
+              <Text style={styles.appTitle}>Ganu Denu</Text>
+            <Text style={styles.appTitleEn}>ගණු දෙනු · Money Manager 🇱🇰</Text>
             </View>
             <View style={styles.iconRow}>
               <TouchableOpacity testID="search-btn" style={styles.iconCircle}>
