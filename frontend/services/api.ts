@@ -1,5 +1,10 @@
 const BASE_URL = process.env.EXPO_PUBLIC_BACKEND_URL ?? '';
 
+// Debug log on import — will appear in Expo Go console
+if (typeof console !== 'undefined') {
+  console.log('[API] EXPO_PUBLIC_BACKEND_URL =', BASE_URL || '(empty!)');
+}
+
 export interface Transaction {
   id: string;
   amount: number;
