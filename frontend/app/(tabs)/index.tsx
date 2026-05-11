@@ -51,12 +51,7 @@ export default function HomeScreen() {
   useFocusEffect(useCallback(() => { setLoading(true); load(); }, [load]));
   const onRefresh = () => { setRefreshing(true); load(); };
 
-  const greeting = () => {
-    const h = now.getHours();
-    if (h < 12) return 'ශුභ උදෑසනක් 🙏';
-    if (h < 17) return 'ශුභ දහවලක් 🙏';
-    return 'ශුභ සන්ධ්‍යාවක් 🙏';
-  };
+  const greeting = () => 'ආයුබෝවන් 🙏';
 
   const handleDelete = (id: string) => {
     Alert.alert('ගනුදෙනු මකන්නද?', 'Delete this transaction?', [
@@ -84,8 +79,12 @@ export default function HomeScreen() {
           <View style={styles.titleRow}>
             <View>
               <Text style={styles.greeting}>{greeting()}</Text>
-              <Text style={styles.appTitle}>Ganu Denu</Text>
-            <Text style={styles.appTitleEn}>ගණු දෙනු · Money Manager 🇱🇰</Text>
+              <View style={styles.titleLine}>
+                <Text style={styles.appTitleSi}>ගණු දෙනු</Text>
+                <Text style={styles.titleSep}> · </Text>
+                <Text style={styles.appTitleEn}>Ganu Denu</Text>
+              </View>
+              <Text style={styles.appSubtitle}>Money Manager 🇱🇰</Text>
             </View>
             <View style={styles.iconRow}>
               <TouchableOpacity testID="search-btn" style={styles.iconCircle}>
@@ -247,8 +246,11 @@ const styles = StyleSheet.create({
   headerZone: { backgroundColor: DEEP_PURPLE, paddingBottom: 28 },
   titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingHorizontal: 20, paddingTop: 10, marginBottom: 18 },
   greeting: { fontSize: 12, color: 'rgba(255,255,255,0.65)', marginBottom: 3 },
-  appTitle: { fontSize: 30, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.5 },
-  appTitleEn: { fontSize: 11, color: 'rgba(255,255,255,0.55)', marginTop: 2 },
+  titleLine: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap' },
+  appTitleSi: { fontSize: 28, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.3 },
+  appTitleEn: { fontSize: 28, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.3 },
+  titleSep: { fontSize: 26, fontWeight: '700', color: 'rgba(255,255,255,0.65)' },
+  appSubtitle: { fontSize: 11, color: 'rgba(255,255,255,0.55)', marginTop: 3 },
   iconRow: { flexDirection: 'row', gap: 10, marginTop: 8 },
   iconCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
 

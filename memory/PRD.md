@@ -1,86 +1,82 @@
-# ගණු දෙනු (Ganu Denu) - Money Manager PRD
-*Last Updated: May 2026*
+# Ganu Denu (ගණු දෙනු) — Product Requirements Document
 
-## Problem Statement
-Build a premium Sinhala/English bilingual money manager mobile app for Sri Lanka's market. 
-The original app was built as HTML/web app + Flutter code. Rebuilding as Expo React Native 
-for Google Play Store + App Store publishing.
+## Vision
+A Sinhala-first money manager app designed for Sri Lankans (and the SL diaspora) to track income & expenses, detect SMS transactions, visualize spending, and stay financially organized — without needing English fluency.
 
-## Architecture
-- **Frontend**: Expo React Native (SDK 54), expo-router file-based routing
-- **Backend**: FastAPI + MongoDB (motor)
-- **Charts**: react-native-svg (custom DonutChart + BarChart components)
-- **Gradient**: expo-linear-gradient (purple balance card)
-- **Storage**: AsyncStorage (settings), MongoDB (transactions)
-- **URL**: https://ganu-launch.preview.emergentagent.com
+## Target Audience
+- Sri Lankan nationals in Sri Lanka & abroad (Dubai, Middle East, etc.)
+- Non-technical users who prefer Sinhala UI
+- Families managing household budgets
+- Small business owners
 
-## User Personas
-- Sri Lankan adults (25-50 years), middle-income households
-- Sinhala speakers who want to track family finances
-- Not very tech-savvy, need simple UI
+## Tech Stack
+- **Frontend**: Expo (React Native), Expo Router
+- **Backend**: FastAPI + MongoDB
+- **State**: Local component state (no Redux yet)
+- **Future**: Firebase (Auth + Cloud Firestore + FCM) — deferred to post-launch
 
-## Design System
-- **Primary**: #7C3AED (Purple/Violet)
-- **Accent**: #F59E0B (Orange/Amber FAB)
-- **Background**: #FAFAFA (light, clean)
-- **Bilingual**: Sinhala primary + English subtitle on all labels
+## Brand
+- App Name: **Ganu Denu** (ගණු දෙනු) — both same prominence
+- Tagline: Money Manager 🇱🇰
+- Primary Color: Deep Purple `#4C1D95`
+- Accent: Amber `#F59E0B`
+- Greeting: "ආයුබෝවන් 🙏" (Welcome)
+- Contact: sismathtrading@kamfa.net, silshabir@gmail.com
 
-## What's Been Implemented (May 2026)
-### Backend APIs
-- GET /api/transactions - with month/year filter
-- POST /api/transactions - create expense/income
-- DELETE /api/transactions/{id} - delete transaction
-- GET /api/stats?month=&year= - monthly income/expenses/categories
-- GET /api/stats/trends - 6-month trend data
-- POST /api/seed - load 30 demo Sri Lankan transactions
+## Implemented Features ✅
+- [x] Dashboard with monthly balance, income/expenses, transaction list
+- [x] Categories (with Sinhala names + English subtitles): ආහාර හා පාන, සති පොළ, නිවාස, ප්‍රවාහන, ඉන්ධන, විදුලිය, ජලය, දුරකථන (Telecom), සෞඛ්‍ය, අධ්‍යාපන, etc.
+- [x] Merchant quick-picks per category (e.g., Dialog/Mobitel/Hutch/SLT for Telecom)
+- [x] Add transaction with bilingual numpad, Sinhala/English category labels
+- [x] SMS detection UI (mocked)
+- [x] Monthly/Reports tabs with charts (DonutChart, BarChart)
+- [x] Settings (PIN toggle UI, contact emails)
+- [x] **In-app Sinhala Keyboard** — Singlish (Phonetic) + Wijesekara modes
+- [x] QR code page at `/qr` for easy app onboarding
 
-### Frontend Screens
-1. **Dashboard (Home)** - Purple gradient balance card, stats row, category filter chips, recent transactions, SMS demo bottom sheet
-2. **Reports** - Month navigation, summary cards, donut chart, category legend, 6-month bar chart
-3. **Monthly** - Month navigation, balance summary, full transaction list
-4. **Settings** - SMS toggle, notifications toggle, demo data loader, Firebase info, about
-5. **Add Transaction** - Custom numpad, expense/income toggle, 25 category grid (Sinhala), description/note input
+## Pending Features (P0 — Required for Play Store)
+- [ ] **Privacy Policy screen** (Sinhala + English) — MANDATORY for Google Play
+- [ ] **PIN Lock functionality** (4-digit + biometric) — toggle UI exists, logic needed
+- [ ] App icon (1024x1024, Play Store-compliant)
 
-### Components
-- `DonutChart` - SVG-based donut chart
-- `BarChart` - SVG-based bar chart
-- `TransactionItem` - transaction row with SMS badge, long-press delete
+## Pending Features (P1 — Quality of life)
+- [ ] **Google Account backup** (sign-in with Google + cloud sync)
+- [ ] **Excel sheet download** from Reports (.xlsx export)
 
-### Features
-- 25 Sinhala categories (ආහාර, නිවාස, ගමන, සෞඛ්‍ය, etc.)
-- SMS detection demo UI (bank transaction bottom sheet)
-- Demo data: 30 realistic Sri Lankan transactions
-- Long-press to delete with confirmation
-- Pull-to-refresh on dashboard
-- Category filter chips
-
-## Prioritized Backlog
-
-### P0 - Critical for Play Store
-- [ ] Firebase Authentication (Google Sign-in)
-- [ ] Firebase Firestore cloud sync
-- [ ] Firebase Cloud Messaging (push notifications)
-- [ ] App icon design (Sinhala-themed)
-- [ ] Play Store listing (screenshots, description)
-
-### P1 - Important
-- [ ] Actual SMS reading (requires native Expo development build + READ_SMS permission)
-- [ ] CSV/PDF export
-- [ ] Google Drive backup
-- [ ] PIN lock implementation
-- [ ] Budget limits with alerts
-- [ ] Recurring expense reminders
-
-### P2 - Nice to Have
+## Future / Backlog (P2)
+- [ ] Firebase Auth + Firestore sync
+- [ ] Push notifications (FCM)
+- [ ] Real SMS detection (Android permission + SMS parser)
+- [ ] Recurring transactions
+- [ ] Budget vs actual tracking
+- [ ] Multi-account support (Bank A, Bank B, Cash)
 - [ ] Dark mode
-- [ ] OCR bill scanner (camera)
-- [ ] Multi-currency support
-- [ ] Widget for home screen
-- [ ] Tamil language support
 
-## Next Tasks
-1. Get Firebase credentials from user (google-services.json)
-2. Implement Firebase Auth + Firestore sync
-3. Design app icon
-4. Prepare Play Store listing
-5. Test on physical Android device (Expo Go)
+## Backend API
+- `GET /api/transactions?month=&year=`
+- `POST /api/transactions`
+- `DELETE /api/transactions/{id}`
+- `GET /api/stats?month=&year=`
+- `GET /api/stats/trends`
+- `POST /api/seed`
+
+## DB Schema (MongoDB collection `ganu_transactions`)
+```
+{
+  id: uuid,
+  amount: float,
+  category: str (e.g., 'food', 'telephone', 'sathipola'),
+  description: str (merchant name or note),
+  note: str?,
+  date: ISO datetime,
+  is_income: bool,
+  from_sms: bool,
+  raw_sms: str?,
+  merchant: str?,
+  created_at: ISO datetime,
+}
+```
+
+## Open Questions
+- Should "Telecom" subcategories (Dialog/Mobitel/etc.) auto-show under one parent in Reports?
+- Should Sinhala Keyboard be the default on all text fields?

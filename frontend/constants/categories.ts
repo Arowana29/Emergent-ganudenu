@@ -107,17 +107,19 @@ export const CATEGORIES: Category[] = [
     ],
   },
 
-  // ── 8. Telephone ──
+  // ── 8. Telecom (was "Telephone") ──
   {
     id: 'telephone',
     sinhala: 'දුරකථන',
-    english: 'Telephone',
+    english: 'Telecom',
     emoji: '📞',
     color: '#8B5CF6',
     bgColor: '#EDE9FE',
     merchants: [
       { si: 'Dialog', en: 'Dialog' },
-      { si: 'Telecom', en: 'Telecom' },
+      { si: 'Mobitel', en: 'Mobitel' },
+      { si: 'Hutch', en: 'Hutch' },
+      { si: 'SLT', en: 'SLT' },
       { si: 'Airtel', en: 'Airtel' },
     ],
   },
