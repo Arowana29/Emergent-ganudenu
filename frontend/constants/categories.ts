@@ -11,24 +11,33 @@ export interface Category {
 }
 
 export const CATEGORIES: Category[] = [
-  // ── Food & Drink ──
+  // ── 1. Food & Drink ──
   {
     id: 'food',
-    sinhala: 'ආහාර පාන',
+    sinhala: 'ආහාර හා පාන',
     english: 'Food & Drink',
     emoji: '🍚',
     color: '#F59E0B',
     bgColor: '#FEF3C7',
     merchants: [
       { si: 'Keells Super', en: 'Keells Super' },
-      { si: 'Arpico Super', en: 'Arpico Super' },
       { si: 'Cargills Food City', en: 'Cargills Food City' },
-      { si: 'සති පොළ', en: 'Saturday Pola' },
-      { si: 'Restaurant', en: 'Restaurant' },
+      { si: 'Arpico Super', en: 'Arpico Super' },
+      { si: 'වෙනත්', en: 'Other' },
     ],
   },
 
-  // ── Housing ──
+  // ── 2. Sathi Pola (Saturday Market) — own category ──
+  {
+    id: 'sathipola',
+    sinhala: 'සති පොළ',
+    english: 'Sathi Pola',
+    emoji: '🛒',
+    color: '#16A34A',
+    bgColor: '#DCFCE7',
+  },
+
+  // ── 3. Housing ──
   {
     id: 'housing',
     sinhala: 'නිවාස',
@@ -43,24 +52,22 @@ export const CATEGORIES: Category[] = [
     ],
   },
 
-  // ── Transport ──
+  // ── 4. Transport ──
   {
     id: 'transport',
-    sinhala: 'ගමනාගමන',
+    sinhala: 'ප්‍රවාහන',
     english: 'Transport',
     emoji: '🚗',
     color: '#10B981',
     bgColor: '#D1FAE5',
     merchants: [
       { si: 'PickMe', en: 'PickMe' },
-      { si: 'Uber', en: 'Uber' },
-      { si: 'Three-wheeler', en: 'Three-wheeler' },
-      { si: 'බස් රථය', en: 'Bus' },
-      { si: 'දුම්රිය', en: 'Train' },
+      { si: 'Train', en: 'Train' },
+      { si: 'Bus', en: 'Bus' },
     ],
   },
 
-  // ── Petrol ──
+  // ── 5. Petrol ──
   {
     id: 'petrol',
     sinhala: 'ඉන්ධන',
@@ -70,12 +77,10 @@ export const CATEGORIES: Category[] = [
     bgColor: '#FEE2E2',
     merchants: [
       { si: 'Lanka IOC', en: 'Lanka IOC' },
-      { si: 'Ceypetco', en: 'Ceypetco' },
-      { si: 'Sinopec', en: 'Sinopec' },
     ],
   },
 
-  // ── Electricity (CEB) ──
+  // ── 6. Electricity (CEB) ──
   {
     id: 'electricity',
     sinhala: 'විදුලිය',
@@ -89,7 +94,7 @@ export const CATEGORIES: Category[] = [
     ],
   },
 
-  // ── Water Bill ──
+  // ── 7. Water Bill ──
   {
     id: 'water',
     sinhala: 'ජලය',
@@ -102,7 +107,7 @@ export const CATEGORIES: Category[] = [
     ],
   },
 
-  // ── Telephone (NEW) ──
+  // ── 8. Telephone ──
   {
     id: 'telephone',
     sinhala: 'දුරකථන',
@@ -112,44 +117,37 @@ export const CATEGORIES: Category[] = [
     bgColor: '#EDE9FE',
     merchants: [
       { si: 'Dialog', en: 'Dialog' },
-      { si: 'Mobitel', en: 'Mobitel' },
-      { si: 'Hutch', en: 'Hutch' },
+      { si: 'Telecom', en: 'Telecom' },
       { si: 'Airtel', en: 'Airtel' },
-      { si: 'SLT', en: 'SLT' },
     ],
   },
 
-  // ── Health / Medical ──
+  // ── 9. Health / Medical ──
   {
     id: 'health',
-    sinhala: 'සෞඛ්‍යය',
+    sinhala: 'සෞඛ්‍ය',
     english: 'Health / Medical',
     emoji: '🏥',
     color: '#EF4444',
     bgColor: '#FEE2E2',
     merchants: [
       { si: 'Asiri Hospital', en: 'Asiri Hospital' },
-      { si: 'Durdens Hospital', en: 'Durdens Hospital' },
-      { si: 'Lanka Hospitals', en: 'Lanka Hospitals' },
-      { si: 'Nawaloka Hospital', en: 'Nawaloka Hospital' },
-      { si: 'Pharmacy', en: 'Pharmacy' },
-      { si: 'වෙනත්', en: 'Other' },
+      { si: 'Nawaloka', en: 'Nawaloka' },
+      { si: 'Durdens', en: 'Durdens' },
     ],
   },
 
-  // ── Education ──
+  // ── 10. Education ──
   {
     id: 'education',
-    sinhala: 'අධ්‍යාපනය',
+    sinhala: 'අධ්‍යාපන',
     english: 'Education',
     emoji: '📚',
     color: '#3B82F6',
     bgColor: '#DBEAFE',
     merchants: [
-      { si: 'Tuition Class', en: 'Tuition Class' },
-      { si: 'University', en: 'University' },
-      { si: 'පාසල් ගාස්තු', en: 'School Fees' },
-      { si: 'පොත්', en: 'Books' },
+      { si: 'School', en: 'School' },
+      { si: 'Tuition', en: 'Tuition' },
     ],
   },
 
@@ -161,11 +159,6 @@ export const CATEGORIES: Category[] = [
     emoji: '🎭',
     color: '#8B5CF6',
     bgColor: '#EDE9FE',
-    merchants: [
-      { si: 'Cinema', en: 'Cinema' },
-      { si: 'Netflix', en: 'Netflix' },
-      { si: 'YouTube Premium', en: 'YouTube Premium' },
-    ],
   },
   {
     id: 'clothing',
@@ -174,11 +167,6 @@ export const CATEGORIES: Category[] = [
     emoji: '👗',
     color: '#EC4899',
     bgColor: '#FCE7F3',
-    merchants: [
-      { si: 'ODEL', en: 'ODEL' },
-      { si: 'NoLimit', en: 'NoLimit' },
-      { si: 'Cool Planet', en: 'Cool Planet' },
-    ],
   },
   {
     id: 'beauty',
