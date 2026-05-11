@@ -4,7 +4,7 @@ import {
   ActivityIndicator, RefreshControl, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '../../components/Icon';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { COLORS, RADIUS, formatLKR, MONTHS_SI, MONTHS_EN } from '../../constants/theme';
 import { CATEGORIES, getCategoryById } from '../../constants/categories';

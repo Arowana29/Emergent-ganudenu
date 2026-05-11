@@ -1,50 +1,7 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useFonts } from 'expo-font';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect, useState } from 'react';
-import { View, ActivityIndicator, Text } from 'react-native';
-
-// Keep splash visible until fonts are loaded
-SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
-  // Load Ionicons font with LOWERCASE key — matches what @expo/vector-icons
-  // registers internally via createIconSet(glyphMap, 'ionicons', font).
-  // Using uppercase 'Ionicons' caused case mismatch → component tried to reload
-  // font over Metro tunnel → corruption → "Font file is empty" error (8 times).
-  const [fontsLoaded, fontError] = useFonts({
-    ionicons: require('../assets/fonts/Ionicons.ttf'),
-  });
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync().catch(() => {});
-      // Show app even if font fails — text-based UI still works
-      setReady(true);
-      if (fontError) {
-        // eslint-disable-next-line no-console
-        console.warn('[Fonts] Ionicons load error (using fallback):', fontError);
-      }
-    }
-  }, [fontsLoaded, fontError]);
-
-  if (!ready) {
-    return (
-      <View style={{ flex: 1, backgroundColor: '#4C1D95', alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color: '#FFFFFF', fontSize: 32, fontWeight: '800', marginBottom: 6, letterSpacing: -0.5 }}>
-          ගණු දෙනු
-        </Text>
-        <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 16, marginBottom: 28 }}>Ganu Denu</Text>
-        <ActivityIndicator color="#FFFFFF" size="large" />
-        <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11, marginTop: 16 }}>
-          පූරණය වෙමින් · Loading...
-        </Text>
-      </View>
-    );
-  }
-
   return (
     <>
       <StatusBar style="dark" />
