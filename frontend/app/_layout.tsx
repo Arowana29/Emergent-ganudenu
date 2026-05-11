@@ -9,10 +9,12 @@ import { View, ActivityIndicator, Text } from 'react-native';
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
-  // Load Ionicons font from local asset bundle — avoids "Font file empty" error on Expo Go
-  // when font is loaded via Metro tunnel (which can corrupt binary transfers)
+  // Load Ionicons font with LOWERCASE key — matches what @expo/vector-icons
+  // registers internally via createIconSet(glyphMap, 'ionicons', font).
+  // Using uppercase 'Ionicons' caused case mismatch → component tried to reload
+  // font over Metro tunnel → corruption → "Font file is empty" error (8 times).
   const [fontsLoaded, fontError] = useFonts({
-    Ionicons: require('../assets/fonts/Ionicons.ttf'),
+    ionicons: require('../assets/fonts/Ionicons.ttf'),
   });
   const [ready, setReady] = useState(false);
 
