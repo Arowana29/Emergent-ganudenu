@@ -297,8 +297,8 @@ const styles = StyleSheet.create({
   catChip: { width: 78, minHeight: 86, backgroundColor: '#FFFFFF', borderRadius: 16, alignItems: 'center', justifyContent: 'center', paddingVertical: 12, paddingHorizontal: 4, borderWidth: 1.5, borderColor: '#E5E7EB', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
   catChipSel: { backgroundColor: MID_PURPLE, borderColor: MID_PURPLE },
   catEmoji: { fontSize: 26, marginBottom: 6 },
-  catSi: { fontSize: 11, fontWeight: '700', color: '#1F2937', textAlign: 'center' },
-  catEn: { fontSize: 8, color: '#9CA3AF', textAlign: 'center', marginTop: 2 },
+  catSi: { fontSize: 13, fontWeight: '900', color: '#1F2937', textAlign: 'center', letterSpacing: -0.2 },
+  catEn: { fontSize: 8, fontWeight: '500', color: '#9CA3AF', textAlign: 'center', marginTop: 2 },
 
   // Empty state
   emptyBox: { alignItems: 'center', paddingVertical: 48 },

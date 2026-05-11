@@ -3,14 +3,17 @@ import {
   View, Text, ScrollView, StyleSheet, Switch, TouchableOpacity, Alert, ActivityIndicator, Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '../../components/Icon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, RADIUS } from '../../constants/theme';
 import { api } from '../../services/api';
+import { pinService } from '../../services/pinService';
 
 const VERSION = '1.0.0';
 
 export default function SettingsScreen() {
+  const router = useRouter();
   const [smsEnabled, setSmsEnabled] = useState(false);
   const [notifEnabled, setNotifEnabled] = useState(true);
   const [pinEnabled, setPinEnabled] = useState(false);
@@ -18,15 +21,44 @@ export default function SettingsScreen() {
   const [clearing, setClearing] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.multiGet(['sms_enabled', 'notif_enabled', 'pin_enabled']).then(pairs => {
+    AsyncStorage.multiGet(['sms_enabled', 'notif_enabled']).then(pairs => {
       setSmsEnabled(pairs[0][1] === '1');
       setNotifEnabled(pairs[1][1] !== '0');
-      setPinEnabled(pairs[2][1] === '1');
     });
+    pinService.isEnabled().then(setPinEnabled);
   }, []);
 
   const toggle = async (key: string, val: boolean) => {
     await AsyncStorage.setItem(key, val ? '1' : '0');
+  };
+
+  const togglePinLock = async (newVal: boolean) => {
+    if (newVal) {
+      // Going from OFF → ON: navigate to PIN setup
+      router.push('/pin-setup');
+      // After return, re-check status
+      setTimeout(async () => {
+        const enabled = await pinService.isEnabled();
+        setPinEnabled(enabled);
+      }, 500);
+    } else {
+      // Going from ON → OFF: confirm disable
+      Alert.alert(
+        'PIN අගුල අක්‍රීය කරන්නද?',
+        'PIN lock disable කරන්න ද? ඔබේ data කෙළින්ම access වේ.',
+        [
+          { text: 'නැහැ · Cancel', style: 'cancel' },
+          {
+            text: 'ඔව් · Disable',
+            style: 'destructive',
+            onPress: async () => {
+              await pinService.disable();
+              setPinEnabled(false);
+            },
+          },
+        ]
+      );
+    }
   };
 
   const handleSeed = async () => {
@@ -164,11 +196,31 @@ export default function SettingsScreen() {
             <Switch
               testID="pin-toggle"
               value={pinEnabled}
-              onValueChange={v => { setPinEnabled(v); toggle('pin_enabled', v); }}
+              onValueChange={togglePinLock}
               trackColor={{ false: COLORS.border, true: '#FEE2E2' }}
               thumbColor={pinEnabled ? COLORS.danger : '#f4f3f4'}
             />
           </SettingRow>
+          {pinEnabled && (
+            <>
+              <View style={styles.rowDivider} />
+              <SettingRow
+                testID="change-pin-btn"
+                icon="key" iconColor="#7C3AED"
+                label="🔑 PIN වෙනස් කරන්න"
+                labelEn="Change your PIN"
+                onPress={() => router.push('/pin-setup')}
+              />
+            </>
+          )}
+          <View style={styles.rowDivider} />
+          <SettingRow
+            testID="privacy-policy-btn"
+            icon="document-text-outline" iconColor="#0284C7"
+            label="📄 පෞද්ගලිකත්ව ප්‍රතිපත්තිය"
+            labelEn="Privacy Policy"
+            onPress={() => router.push('/privacy')}
+          />
         </View>
 
         {/* Firebase Section */}

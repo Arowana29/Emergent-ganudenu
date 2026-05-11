@@ -151,6 +151,9 @@ async def seed_data():
     samples = [
         # ── Current month ──
         {"cat": "salary", "desc": "මාසික වැටුප", "amt": 120000, "inc": True, "day": 1, "mo": 0},
+        {"cat": "business_income", "desc": "Side business sales", "amt": 35000, "inc": True, "day": 8, "mo": 0},
+        {"cat": "loan_received", "desc": "Friend ලගින් ණයක්", "amt": 15000, "inc": True, "day": 16, "mo": 0},
+
         {"cat": "food", "desc": "Keells Super", "amt": 3500, "inc": False, "day": 14, "mo": 0, "sms": True, "raw": "BOC Bank: Debit Rs.3,500.00. Keells Super Colombo. Ref:TXN2847B"},
         {"cat": "food", "desc": "Arpico Super", "amt": 6400, "inc": False, "day": 9, "mo": 0, "sms": True},
         {"cat": "food", "desc": "Cargills Food City", "amt": 4200, "inc": False, "day": 18, "mo": 0},
@@ -165,9 +168,14 @@ async def seed_data():
         {"cat": "education", "desc": "Tuition", "amt": 3000, "inc": False, "day": 8, "mo": 0},
         {"cat": "housing", "desc": "නිවාස ණය", "amt": 25000, "inc": False, "day": 3, "mo": 0},
         {"cat": "health", "desc": "Asiri Hospital", "amt": 1850, "inc": False, "day": 7, "mo": 0},
+        {"cat": "insurance_car", "desc": "වාහන රක්ෂණය", "amt": 4500, "inc": False, "day": 15, "mo": 0},
+        {"cat": "insurance_medical", "desc": "වෛද්‍ය රක්ෂණය", "amt": 2800, "inc": False, "day": 15, "mo": 0},
+        {"cat": "charity", "desc": "පන්සල", "amt": 1500, "inc": False, "day": 20, "mo": 0},
+        {"cat": "loan_given", "desc": "මල්ලීට ණයක්", "amt": 5000, "inc": False, "day": 19, "mo": 0},
 
         # ── Month -1 ──
         {"cat": "salary", "desc": "මාසික වැටුප", "amt": 120000, "inc": True, "day": 1, "mo": -1},
+        {"cat": "business_income", "desc": "Online sales", "amt": 22000, "inc": True, "day": 10, "mo": -1},
         {"cat": "food", "desc": "Keells Super", "amt": 15200, "inc": False, "day": 15, "mo": -1},
         {"cat": "housing", "desc": "නිවාස ණය", "amt": 25000, "inc": False, "day": 3, "mo": -1},
         {"cat": "transport", "desc": "PickMe", "amt": 4800, "inc": False, "day": 10, "mo": -1},
@@ -175,17 +183,16 @@ async def seed_data():
         {"cat": "health", "desc": "Nawaloka", "amt": 2300, "inc": False, "day": 8, "mo": -1},
         {"cat": "electricity", "desc": "CEB", "amt": 2600, "inc": False, "day": 6, "mo": -1},
         {"cat": "water", "desc": "NWSDB", "amt": 780, "inc": False, "day": 6, "mo": -1},
-        {"cat": "telephone", "desc": "Telecom", "amt": 1400, "inc": False, "day": 10, "mo": -1},
+        {"cat": "telephone", "desc": "Mobitel", "amt": 1400, "inc": False, "day": 10, "mo": -1},
+        {"cat": "charity", "desc": "දන්දීම", "amt": 2000, "inc": False, "day": 14, "mo": -1},
         {"cat": "sathipola", "desc": "සති පොළ", "amt": 2400, "inc": False, "day": 13, "mo": -1},
 
-        # ── Month -2 ──
+        # ── Month -2, -3, -4, -5 ──
         {"cat": "salary", "desc": "මාසික වැටුප", "amt": 120000, "inc": True, "day": 1, "mo": -2},
         {"cat": "food", "desc": "Arpico Super", "amt": 18000, "inc": False, "day": 15, "mo": -2},
         {"cat": "housing", "desc": "නිවාස ණය", "amt": 25000, "inc": False, "day": 3, "mo": -2},
         {"cat": "electricity", "desc": "CEB", "amt": 3200, "inc": False, "day": 7, "mo": -2},
         {"cat": "water", "desc": "NWSDB", "amt": 920, "inc": False, "day": 7, "mo": -2},
-
-        # ── Month -3 to -5 ──
         {"cat": "salary", "desc": "මාසික වැටුප", "amt": 115000, "inc": True, "day": 1, "mo": -3},
         {"cat": "food", "desc": "Keells Super", "amt": 16500, "inc": False, "day": 15, "mo": -3},
         {"cat": "housing", "desc": "නිවාස ණය", "amt": 25000, "inc": False, "day": 3, "mo": -3},

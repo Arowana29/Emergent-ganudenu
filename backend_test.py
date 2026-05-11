@@ -1,168 +1,139 @@
-"""
-Backend tests for Ganu Denu (Sri Lankan Sinhala money manager).
-Tests endpoints after seed data update with new categories:
-electricity (replaced utilities), water (NEW), petrol (NEW), transport.
-"""
+"""Backend tests for Ganu Denu — verifying new category IDs after seed update."""
 import os
 import sys
-from datetime import datetime, timezone
+import requests
 from pathlib import Path
 
-import httpx
-from dotenv import load_dotenv
+# Load REACT_APP_BACKEND_URL from frontend/.env (since this is an Expo app it's EXPO_PUBLIC_BACKEND_URL)
+FRONTEND_ENV = Path(__file__).parent / "frontend" / ".env"
+BASE = None
+for line in FRONTEND_ENV.read_text().splitlines():
+    if line.startswith("EXPO_PUBLIC_BACKEND_URL="):
+        BASE = line.split("=", 1)[1].strip().strip('"').rstrip("/")
+        break
+assert BASE, "EXPO_PUBLIC_BACKEND_URL not found"
+API = f"{BASE}/api"
+print(f"Testing API at: {API}\n")
 
-# Use external URL via EXPO_PUBLIC_BACKEND_URL from frontend/.env
-load_dotenv(Path(__file__).parent / "frontend" / ".env")
-BASE_URL = os.environ.get("EXPO_PUBLIC_BACKEND_URL", "http://localhost:8001").rstrip("/")
-API = f"{BASE_URL}/api"
+results = []
+created_ids = []  # for cleanup
 
-print(f"Testing against: {API}")
-
-now = datetime.now(timezone.utc)
-CUR_MONTH = now.month
-CUR_YEAR = now.year
-
-results = []  # (name, passed, detail)
-
-
-def record(name, passed, detail=""):
-    results.append((name, passed, detail))
-    status = "PASS" if passed else "FAIL"
-    print(f"[{status}] {name} :: {detail}")
+def check(name, cond, detail=""):
+    status = "PASS" if cond else "FAIL"
+    results.append((name, status, detail))
+    print(f"[{status}] {name} — {detail}")
 
 
-def test_seed():
-    try:
-        r = httpx.post(f"{API}/seed", timeout=60)
-        if r.status_code != 200:
-            return record("POST /api/seed", False, f"status={r.status_code} body={r.text[:200]}")
-        body = r.json()
-        if body.get("seeded") != 34:
-            return record("POST /api/seed", False, f"expected seeded=34 got {body.get('seeded')}")
-        if body.get("message") != "Demo data loaded!":
-            return record("POST /api/seed", False, f"unexpected message: {body.get('message')}")
-        record("POST /api/seed", True, f"seeded=34, message ok")
-    except Exception as e:
-        record("POST /api/seed", False, f"exception: {e}")
+# 1. POST /api/seed → returns {seeded: 47, message: "Demo data loaded!"}
+print("\n── Test 1: POST /api/seed ──")
+r = requests.post(f"{API}/seed", timeout=30)
+print(f"status={r.status_code}")
+seed_body = r.json()
+print(f"body={seed_body}")
+check("seed status 200", r.status_code == 200, f"got {r.status_code}")
+check("seed count == 47", seed_body.get("seeded") == 47, f"got {seed_body.get('seeded')}")
+check("seed message", seed_body.get("message") == "Demo data loaded!", f"got {seed_body.get('message')}")
 
 
-def test_get_transactions():
-    try:
-        r = httpx.get(f"{API}/transactions", params={"month": CUR_MONTH, "year": CUR_YEAR}, timeout=30)
-        if r.status_code != 200:
-            return record("GET /api/transactions", False, f"status={r.status_code}")
-        txs = r.json()
-        if not isinstance(txs, list) or len(txs) == 0:
-            return record("GET /api/transactions", False, f"expected non-empty list, got {len(txs) if isinstance(txs, list) else 'non-list'}")
-        cats = {t.get("category") for t in txs}
-        # Required new categories in current month seed: electricity, water, petrol, transport
-        required = {"electricity", "water", "petrol", "transport"}
-        missing = required - cats
-        if missing:
-            return record("GET /api/transactions", False, f"missing new categories: {missing}; got cats={cats}")
-        if "utilities" in cats:
-            return record("GET /api/transactions", False, f"'utilities' should be removed, but found in: {cats}")
-        # Ensure each tx has category field
-        for t in txs:
-            if not t.get("category"):
-                return record("GET /api/transactions", False, f"transaction missing category: {t}")
-        record("GET /api/transactions", True, f"count={len(txs)}, cats include {required}, no 'utilities'")
-    except Exception as e:
-        record("GET /api/transactions", False, f"exception: {e}")
+# 2. GET /api/transactions?month=5&year=2026 → must include new categories
+print("\n── Test 2: GET /api/transactions?month=5&year=2026 ──")
+r = requests.get(f"{API}/transactions", params={"month": 5, "year": 2026}, timeout=30)
+print(f"status={r.status_code}, count={len(r.json())}")
+txs = r.json()
+check("transactions status 200", r.status_code == 200)
+cats_found = {t["category"] for t in txs}
+print(f"Categories found in May 2026: {sorted(cats_found)}")
+
+required_present = ['loan_received', 'loan_given', 'charity',
+                    'insurance_car', 'insurance_medical', 'business_income']
+for c in required_present:
+    check(f"category '{c}' present in May 2026 list", c in cats_found,
+          f"present={c in cats_found}")
 
 
-def test_stats():
-    try:
-        r = httpx.get(f"{API}/stats", params={"month": CUR_MONTH, "year": CUR_YEAR}, timeout=30)
-        if r.status_code != 200:
-            return record("GET /api/stats", False, f"status={r.status_code}")
-        s = r.json()
-        for key in ("income", "expenses", "balance", "categories", "total_count", "sms_count"):
-            if key not in s:
-                return record("GET /api/stats", False, f"missing key '{key}' in response")
-        if s["income"] <= 0:
-            return record("GET /api/stats", False, f"expected income>0, got {s['income']}")
-        if s["expenses"] <= 0:
-            return record("GET /api/stats", False, f"expected expenses>0, got {s['expenses']}")
-        if abs((s["income"] - s["expenses"]) - s["balance"]) > 0.01:
-            return record("GET /api/stats", False, f"balance mismatch: {s['income']}-{s['expenses']} != {s['balance']}")
-        cats = {c["category"] for c in s.get("categories", [])}
-        required = {"electricity", "water", "petrol"}
-        missing = required - cats
-        if missing:
-            return record("GET /api/stats", False, f"missing new categories in stats: {missing}; got {cats}")
-        if "utilities" in cats:
-            return record("GET /api/stats", False, f"'utilities' present in stats categories")
-        # Validate pct sums roughly to 100
-        total_pct = sum(c.get("pct", 0) for c in s["categories"])
-        record("GET /api/stats", True,
-               f"income={s['income']}, expenses={s['expenses']}, balance={s['balance']}, cats={cats}, total_pct={total_pct}")
-    except Exception as e:
-        record("GET /api/stats", False, f"exception: {e}")
+# 3. GET /api/stats?month=5&year=2026 — income aggregates + expense categories
+print("\n── Test 3: GET /api/stats?month=5&year=2026 ──")
+r = requests.get(f"{API}/stats", params={"month": 5, "year": 2026}, timeout=30)
+stats = r.json()
+print(f"income={stats.get('income')}, expenses={stats.get('expenses')}, balance={stats.get('balance')}")
+print(f"Expense categories breakdown: {[c['category'] for c in stats.get('categories', [])]}")
+check("stats status 200", r.status_code == 200)
+
+# Build expected income = salary(120000) + business_income(35000) + loan_received(15000) = 170000
+# (only from current-month seed entries; loan_received was added today's run)
+income_txs = [t for t in txs if t.get("is_income")]
+income_cats = {t["category"] for t in income_txs}
+print(f"Income categories present in tx list: {income_cats}")
+for c in ['loan_received', 'business_income', 'salary']:
+    check(f"income category '{c}' contributes to May 2026", c in income_cats)
+
+# Verify stats.income == sum of income tx amounts
+expected_income = sum(t["amount"] for t in income_txs)
+check("stats.income == sum(income txs)", abs(stats["income"] - expected_income) < 0.01,
+      f"stats={stats['income']}, calc={expected_income}")
+
+# Verify expense categories breakdown includes the new ones
+expense_cat_list = {c["category"] for c in stats["categories"]}
+for c in ['loan_given', 'charity', 'insurance_car', 'insurance_medical',
+          'sathipola', 'telephone', 'petrol', 'electricity', 'water']:
+    check(f"expense breakdown contains '{c}'", c in expense_cat_list,
+          f"present={c in expense_cat_list}")
+
+# Percentage should sum to ~100
+pct_sum = sum(c["pct"] for c in stats["categories"])
+check("expense pct sums ~100", 98 <= pct_sum <= 102, f"pct_sum={pct_sum}")
 
 
-def test_create_transaction():
-    try:
-        payload = {
-            "amount": 500,
-            "category": "water",
-            "description": "Test ජලය",
-            "is_income": False,
-        }
-        r = httpx.post(f"{API}/transactions", json=payload, timeout=30)
-        if r.status_code != 200:
-            return record("POST /api/transactions (water)", False, f"status={r.status_code} body={r.text[:200]}")
-        t = r.json()
-        if t.get("category") != "water":
-            return record("POST /api/transactions (water)", False, f"category mismatch: {t}")
-        if t.get("amount") != 500:
-            return record("POST /api/transactions (water)", False, f"amount mismatch: {t}")
-        if t.get("description") != "Test ජලය":
-            return record("POST /api/transactions (water)", False, f"description mismatch (Sinhala unicode): {t.get('description')!r}")
-        if not t.get("id"):
-            return record("POST /api/transactions (water)", False, f"missing id: {t}")
-        if not t.get("date"):
-            return record("POST /api/transactions (water)", False, f"missing date: {t}")
-        # Cleanup so we don't pollute the seed for the next test runs
-        del_r = httpx.delete(f"{API}/transactions/{t['id']}", timeout=15)
-        cleanup = "cleaned" if del_r.status_code == 200 else f"cleanup_failed({del_r.status_code})"
-        record("POST /api/transactions (water)", True, f"id={t['id']}, sinhala desc preserved, {cleanup}")
-    except Exception as e:
-        record("POST /api/transactions (water)", False, f"exception: {e}")
+# 4. POST /api/transactions with charity (expense, Sinhala desc)
+print("\n── Test 4: POST charity transaction ──")
+body4 = {"amount": 5000, "category": "charity", "description": "පන්සල", "is_income": False}
+r = requests.post(f"{API}/transactions", json=body4, timeout=15)
+print(f"status={r.status_code}, body={r.json()}")
+tx4 = r.json()
+check("POST charity status 200", r.status_code == 200, f"got {r.status_code}")
+check("POST charity category preserved", tx4.get("category") == "charity")
+check("POST charity Sinhala description preserved", tx4.get("description") == "පන්සල",
+      f"got {tx4.get('description')!r}")
+check("POST charity is_income False", tx4.get("is_income") is False)
+check("POST charity has id", bool(tx4.get("id")))
+if tx4.get("id"):
+    created_ids.append(tx4["id"])
 
 
-def test_trends():
-    try:
-        r = httpx.get(f"{API}/stats/trends", timeout=30)
-        if r.status_code != 200:
-            return record("GET /api/stats/trends", False, f"status={r.status_code}")
-        trends = r.json()
-        if not isinstance(trends, list) or len(trends) != 6:
-            return record("GET /api/stats/trends", False, f"expected list of 6, got {len(trends) if isinstance(trends, list) else 'non-list'}")
-        for t in trends:
-            for key in ("month", "year", "label", "income", "expenses"):
-                if key not in t:
-                    return record("GET /api/stats/trends", False, f"missing key {key} in {t}")
-        # Verify last entry corresponds to current month
-        last = trends[-1]
-        if last["month"] != CUR_MONTH or last["year"] != CUR_YEAR:
-            return record("GET /api/stats/trends", False, f"last trend not current month: {last}")
-        record("GET /api/stats/trends", True, f"6 months: {[(t['month'], t['year'], t['income'], t['expenses']) for t in trends]}")
-    except Exception as e:
-        record("GET /api/stats/trends", False, f"exception: {e}")
+# 5. POST /api/transactions loan_received (income)
+print("\n── Test 5: POST loan_received transaction ──")
+body5 = {"amount": 50000, "category": "loan_received",
+         "description": "Friend ලගින් ණයක්", "is_income": True}
+r = requests.post(f"{API}/transactions", json=body5, timeout=15)
+print(f"status={r.status_code}, body={r.json()}")
+tx5 = r.json()
+check("POST loan_received status 200", r.status_code == 200, f"got {r.status_code}")
+check("POST loan_received category preserved", tx5.get("category") == "loan_received")
+check("POST loan_received Sinhala desc preserved",
+      tx5.get("description") == "Friend ලගින් ණයක්",
+      f"got {tx5.get('description')!r}")
+check("POST loan_received is_income True", tx5.get("is_income") is True)
+check("POST loan_received amount", tx5.get("amount") == 50000)
+if tx5.get("id"):
+    created_ids.append(tx5["id"])
 
 
-if __name__ == "__main__":
-    test_seed()
-    test_get_transactions()
-    test_stats()
-    test_create_transaction()
-    test_trends()
+# ── Cleanup ──
+print("\n── Cleanup created transactions ──")
+for tid in created_ids:
+    rr = requests.delete(f"{API}/transactions/{tid}", timeout=10)
+    print(f"DELETE {tid} → {rr.status_code}")
 
-    print("\n" + "=" * 60)
-    passed = sum(1 for _, p, _ in results if p)
-    total = len(results)
-    print(f"RESULT: {passed}/{total} passed")
-    for name, p, detail in results:
-        print(f"  [{'OK' if p else 'XX'}] {name}")
-    sys.exit(0 if passed == total else 1)
+
+# ── Summary ──
+print("\n" + "=" * 60)
+passed = sum(1 for _, s, _ in results if s == "PASS")
+failed = sum(1 for _, s, _ in results if s == "FAIL")
+print(f"TOTAL: {passed} passed, {failed} failed (of {len(results)})")
+if failed:
+    print("\nFailures:")
+    for n, s, d in results:
+        if s == "FAIL":
+            print(f"  - {n}: {d}")
+    sys.exit(1)
+print("All backend tests passed ✓")

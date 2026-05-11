@@ -419,8 +419,8 @@ const styles = StyleSheet.create({
   catItem: { width: '22%', minHeight: 88, paddingVertical: 8, paddingHorizontal: 4, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: COLORS.border },
   catEmoji: { fontSize: 24, marginBottom: 3 },
   catName: { fontSize: 9, fontWeight: '600', color: COLORS.textMain, textAlign: 'center', marginTop: 3 },
-  catSi: { fontSize: 11, fontWeight: '800', color: COLORS.textMain, textAlign: 'center', marginTop: 2 },
-  catEn: { fontSize: 8, color: COLORS.textMuted, textAlign: 'center', marginTop: 1 },
+  catSi: { fontSize: 12, fontWeight: '900', color: COLORS.textMain, textAlign: 'center', marginTop: 3, letterSpacing: -0.2 },
+  catEn: { fontSize: 8, fontWeight: '500', color: COLORS.textMuted, textAlign: 'center', marginTop: 1 },
 
   // Merchant Quick Picks
   merchantChip: {

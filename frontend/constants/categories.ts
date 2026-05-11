@@ -11,7 +11,8 @@ export interface Category {
 }
 
 export const CATEGORIES: Category[] = [
-  // ── 1. Food & Drink ──
+  // ════════ EXPENSE CATEGORIES ════════
+  // ── Food & Drink ──
   {
     id: 'food',
     sinhala: 'ආහාර හා පාන',
@@ -26,8 +27,6 @@ export const CATEGORIES: Category[] = [
       { si: 'වෙනත්', en: 'Other' },
     ],
   },
-
-  // ── 2. Sathi Pola (Saturday Market) — own category ──
   {
     id: 'sathipola',
     sinhala: 'සති පොළ',
@@ -37,7 +36,7 @@ export const CATEGORIES: Category[] = [
     bgColor: '#DCFCE7',
   },
 
-  // ── 3. Housing ──
+  // ── Housing ──
   {
     id: 'housing',
     sinhala: 'නිවාස',
@@ -52,7 +51,7 @@ export const CATEGORIES: Category[] = [
     ],
   },
 
-  // ── 4. Transport ──
+  // ── Transport / Petrol ──
   {
     id: 'transport',
     sinhala: 'ප්‍රවාහන',
@@ -66,8 +65,6 @@ export const CATEGORIES: Category[] = [
       { si: 'Bus', en: 'Bus' },
     ],
   },
-
-  // ── 5. Petrol ──
   {
     id: 'petrol',
     sinhala: 'ඉන්ධන',
@@ -80,7 +77,7 @@ export const CATEGORIES: Category[] = [
     ],
   },
 
-  // ── 6. Electricity (CEB) ──
+  // ── Utilities ──
   {
     id: 'electricity',
     sinhala: 'විදුලිය',
@@ -93,8 +90,6 @@ export const CATEGORIES: Category[] = [
       { si: 'LECO', en: 'LECO' },
     ],
   },
-
-  // ── 7. Water Bill ──
   {
     id: 'water',
     sinhala: 'ජලය',
@@ -106,8 +101,6 @@ export const CATEGORIES: Category[] = [
       { si: 'NWSDB', en: 'NWSDB' },
     ],
   },
-
-  // ── 8. Telecom (was "Telephone") ──
   {
     id: 'telephone',
     sinhala: 'දුරකථන',
@@ -124,7 +117,7 @@ export const CATEGORIES: Category[] = [
     ],
   },
 
-  // ── 9. Health / Medical ──
+  // ── Health & Education ──
   {
     id: 'health',
     sinhala: 'සෞඛ්‍ය',
@@ -138,8 +131,6 @@ export const CATEGORIES: Category[] = [
       { si: 'Durdens', en: 'Durdens' },
     ],
   },
-
-  // ── 10. Education ──
   {
     id: 'education',
     sinhala: 'අධ්‍යාපන',
@@ -151,6 +142,67 @@ export const CATEGORIES: Category[] = [
       { si: 'School', en: 'School' },
       { si: 'Tuition', en: 'Tuition' },
     ],
+  },
+
+  // ── 💰 Loans (NEW - separate category with sub-types) ──
+  {
+    id: 'loan_received',
+    sinhala: 'ණය ලැබුණා',
+    english: 'Loan Received',
+    emoji: '💸',
+    color: '#059669',
+    bgColor: '#D1FAE5',
+    isIncome: true, // increases your balance
+  },
+  {
+    id: 'loan_given',
+    sinhala: 'ණයට දීම',
+    english: 'Loan Given',
+    emoji: '🤝',
+    color: '#B91C1C',
+    bgColor: '#FEE2E2',
+  },
+
+  // ── 🙏 Charity (NEW) ──
+  {
+    id: 'charity',
+    sinhala: 'දන්දීම',
+    english: 'Charity',
+    emoji: '🙏',
+    color: '#D97706',
+    bgColor: '#FEF3C7',
+    merchants: [
+      { si: 'පන්සල', en: 'Temple' },
+      { si: 'පල්ලිය', en: 'Church' },
+      { si: 'මුස්ලිම් පල්ලිය', en: 'Mosque' },
+      { si: 'වෙනත්', en: 'Other' },
+    ],
+  },
+
+  // ── 🛡️ Insurance (with sub-types) ──
+  {
+    id: 'insurance_car',
+    sinhala: 'වාහන රක්ෂණය',
+    english: 'Car Insurance',
+    emoji: '🚙',
+    color: '#6366F1',
+    bgColor: '#E0E7FF',
+  },
+  {
+    id: 'insurance_medical',
+    sinhala: 'වෛද්‍ය රක්ෂණය',
+    english: 'Medical Insurance',
+    emoji: '💊',
+    color: '#0EA5E9',
+    bgColor: '#E0F2FE',
+  },
+  {
+    id: 'insurance_life',
+    sinhala: 'ජීවිත රක්ෂණය',
+    english: 'Life Insurance',
+    emoji: '🛡️',
+    color: '#7C3AED',
+    bgColor: '#EDE9FE',
   },
 
   // ── Lifestyle ──
@@ -192,7 +244,7 @@ export const CATEGORIES: Category[] = [
     id: 'religious',
     sinhala: 'ආගමික',
     english: 'Religious',
-    emoji: '🙏',
+    emoji: '🪷',
     color: '#D97706',
     bgColor: '#FEF3C7',
   },
@@ -205,22 +257,6 @@ export const CATEGORIES: Category[] = [
     emoji: '🏦',
     color: '#059669',
     bgColor: '#D1FAE5',
-  },
-  {
-    id: 'insurance',
-    sinhala: 'රක්ෂණය',
-    english: 'Insurance',
-    emoji: '🛡️',
-    color: '#6366F1',
-    bgColor: '#E0E7FF',
-  },
-  {
-    id: 'loan',
-    sinhala: 'ණය',
-    english: 'Loan',
-    emoji: '🏧',
-    color: '#B91C1C',
-    bgColor: '#FEE2E2',
   },
 
   // ── Other ──
@@ -249,7 +285,7 @@ export const CATEGORIES: Category[] = [
     bgColor: '#F3F4F6',
   },
 
-  // ── Income ──
+  // ════════ INCOME CATEGORIES ════════
   {
     id: 'salary',
     sinhala: 'වැටුප',
@@ -260,21 +296,39 @@ export const CATEGORIES: Category[] = [
     isIncome: true,
   },
   {
-    id: 'income',
-    sinhala: 'ආදායම',
-    english: 'Income',
-    emoji: '💰',
-    color: '#059669',
-    bgColor: '#D1FAE5',
+    id: 'business_income',
+    sinhala: 'ව්‍යාපාරික ආදායම',
+    english: 'Business Income',
+    emoji: '📈',
+    color: '#0284C7',
+    bgColor: '#E0F2FE',
     isIncome: true,
   },
   {
     id: 'freelance',
-    sinhala: 'ස්වාධීන',
+    sinhala: 'ස්වාධීන ආදායම',
     english: 'Freelance',
     emoji: '💻',
-    color: '#0284C7',
-    bgColor: '#E0F2FE',
+    color: '#0891B2',
+    bgColor: '#CFFAFE',
+    isIncome: true,
+  },
+  {
+    id: 'rental',
+    sinhala: 'කුලී ආදායම',
+    english: 'Rental Income',
+    emoji: '🏘️',
+    color: '#7C3AED',
+    bgColor: '#EDE9FE',
+    isIncome: true,
+  },
+  {
+    id: 'interest',
+    sinhala: 'පොලී',
+    english: 'Interest',
+    emoji: '🏦',
+    color: '#059669',
+    bgColor: '#D1FAE5',
     isIncome: true,
   },
   {
@@ -284,6 +338,15 @@ export const CATEGORIES: Category[] = [
     emoji: '🎁',
     color: '#D97706',
     bgColor: '#FEF3C7',
+    isIncome: true,
+  },
+  {
+    id: 'other_income',
+    sinhala: 'වෙනත් ආදායම',
+    english: 'Other Income',
+    emoji: '💰',
+    color: '#6B7280',
+    bgColor: '#F3F4F6',
     isIncome: true,
   },
 ];
