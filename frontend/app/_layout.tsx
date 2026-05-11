@@ -4,31 +4,41 @@ import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import { View, ActivityIndicator, Text } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 // Keep splash visible until fonts are loaded
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
-  // Preload Ionicons font — fixes "Font file for ionicons is empty" error on Expo Go
+  // Load Ionicons font from local asset bundle — avoids "Font file empty" error on Expo Go
+  // when font is loaded via Metro tunnel (which can corrupt binary transfers)
   const [fontsLoaded, fontError] = useFonts({
-    ...Ionicons.font,
+    Ionicons: require('../assets/fonts/Ionicons.ttf'),
   });
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync().catch(() => {});
+      // Show app even if font fails — text-based UI still works
       setReady(true);
+      if (fontError) {
+        // eslint-disable-next-line no-console
+        console.warn('[Fonts] Ionicons load error (using fallback):', fontError);
+      }
     }
   }, [fontsLoaded, fontError]);
 
   if (!ready) {
     return (
       <View style={{ flex: 1, backgroundColor: '#4C1D95', alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color: '#FFFFFF', fontSize: 28, fontWeight: '800', marginBottom: 8 }}>ගණු දෙනු</Text>
-        <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, marginBottom: 24 }}>Ganu Denu</Text>
+        <Text style={{ color: '#FFFFFF', fontSize: 32, fontWeight: '800', marginBottom: 6, letterSpacing: -0.5 }}>
+          ගණු දෙනු
+        </Text>
+        <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 16, marginBottom: 28 }}>Ganu Denu</Text>
         <ActivityIndicator color="#FFFFFF" size="large" />
+        <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11, marginTop: 16 }}>
+          පූරණය වෙමින් · Loading...
+        </Text>
       </View>
     );
   }
