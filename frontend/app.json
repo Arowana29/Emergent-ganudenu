@@ -73,8 +73,9 @@
     },
     "extra": {
       "eas": {
-        "projectId": ""
-      }
+        "projectId": "b10626a7-72ab-404b-8fdb-8505816ace84"
+      },
+      "router": {}
     },
     "owner": "kamfa2907"
   }
