@@ -4,7 +4,7 @@
     "slug": "ganu-denu",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+            "icon": "./assets/GanuDenu AppIcon.png",
     "scheme": "ganudenu",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
@@ -23,7 +23,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+                  "foregroundImage": "./assets/GanuDenu AppIcon.png",
         "backgroundColor": "#4C1D95"
       },
       "edgeToEdgeEnabled": true,
