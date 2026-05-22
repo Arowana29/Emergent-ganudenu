@@ -5,10 +5,19 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      build_profile:
+        description: 'Build profile (preview or production)'
+        required: false
+        default: 'preview'
+        type: choice
+        options:
+          - preview
+          - production
 
 jobs:
   build:
-    name: Build Android APK
+    name: Build Android
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -26,8 +35,8 @@ jobs:
         working-directory: frontend
         run: npm install
 
-      - name: Build Android APK
+      - name: Build Android
         working-directory: frontend
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: eas build --platform android --profile preview --non-interactive
+        run: eas build --platform android --profile ${{ github.event.inputs.build_profile || 'preview' }} --non-interactive
