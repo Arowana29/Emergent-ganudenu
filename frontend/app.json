@@ -2,8 +2,7 @@
   "expo": {
     "name": "Ganu Denu",
     "slug": "ganu-denu",
-    "version": "1.0.0",
-    "orientation": "portrait",
+    "version": "12.0.0",    "orientation": "portrait",
             "icon": "./assets/GanuDenu AppIcon.png",
     "scheme": "ganudenu",
     "userInterfaceStyle": "light",
@@ -13,8 +12,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.sismath.ganudenu",
-      "buildNumber": "1",
-      "infoPlist": {
+      "buildNumber": "12",      "infoPlist": {
         "NSCameraUsageDescription": "Scan bills and receipts to track expenses",
         "NSPhotoLibraryUsageDescription": "Select receipt photos to track expenses",
         "NSFaceIDUsageDescription": "Unlock app with Face ID",
@@ -28,7 +26,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.sismath.ganudenu",
-      "versionCode": 6,
+      "versionCode": 12,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_MEDIA_IMAGES",
