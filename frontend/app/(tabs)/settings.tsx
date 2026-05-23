@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View, Text, ScrollView, StyleSheet, Switch, TouchableOpacity, Alert, ActivityIndicator, Linking,
-} from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Switch, TouchableOpacity, Alert, ActivityIndicator, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '../../components/Icon';
@@ -19,65 +17,87 @@ export default function SettingsScreen() {
   const [pinEnabled, setPinEnabled] = useState(false);
   const [seeding, setSeeding] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [devMode, setDevMode] = useState(false);
+  const [devTapCount, setDevTapCount] = useState(0);
 
   useEffect(() => {
-    AsyncStorage.multiGet(['sms_enabled', 'notif_enabled']).then(pairs => {
-      setSmsEnabled(pairs[0][1] === '1');
-      setNotifEnabled(pairs[1][1] !== '0');
-    });
-    pinService.isEnabled().then(setPinEnabled);
+    AsyncStorage.multiGet(['sms_enabled', 'notif_enabled', 'dev_mode'])
+      .then(pairs => {
+        setSmsEnabled(pairs[0][1] === '1');
+        setNotifEnabled(pairs[1][1] !== '0');
+        setDevMode(pairs[2][1] === '1');
+      });
+    pinService.isEnabled()
+      .then(setPinEnabled);
   }, []);
 
   const toggle = async (key: string, val: boolean) => {
     await AsyncStorage.setItem(key, val ? '1' : '0');
   };
 
-  const togglePinLock = async (newVal: boolean) => {
-    if (newVal) {
-      // Going from OFF → ON: navigate to PIN setup
-      router.push('/pin-setup');
-      // After return, re-check status
-      setTimeout(async () => {
-        const enabled = await pinService.isEnabled();
-        setPinEnabled(enabled);
-      }, 500);
-    } else {
-      // Going from ON → OFF: confirm disable
+  const handleVersionTap = async () => {
+    const newCount = devTapCount + 1;
+    setDevTapCount(newCount);
+    if (newCount >= 7) {
+      const newDevMode = !devMode;
+      setDevMode(newDevMode);
+      await AsyncStorage.setItem('dev_mode', newDevMode ? '1' : '0');
+      setDevTapCount(0);
       Alert.alert(
-        'PIN අගුල අක්‍රීය කරන්නද?',
-        'PIN lock disable කරන්න ද? ඔබේ data කෙළින්ම access වේ.',
-        [
-          { text: 'නැහැ · Cancel', style: 'cancel' },
-          {
-            text: 'ඔව් · Disable',
-            style: 'destructive',
-            onPress: async () => {
-              await pinService.disable();
-              setPinEnabled(false);
-            },
-          },
-        ]
+        newDevMode ? 'Developer Mode ON' : 'Developer Mode OFF',
+        newDevMode ? 'Data management tools are now visible.' : 'Developer tools hidden.'
       );
     }
   };
 
-  const handleSeed = async () => {
+  const togglePinLock = async (newVal: boolean) => {
+    if (newVal) {
+      router.push('/pin-setup');
+    } else {
+      await pinService.disable();
+      setPinEnabled(false);
+    }
+  };
+
+  const handleSeedData = async () => {
+    setSeeding(true);
+    try {
+      await api.seedDemoData();
+      Alert.alert('සාර්ථකයි', 'Demo data loaded successfully.');
+    } catch (e) {
+      Alert.alert('Error', 'Failed to seed demo data.');
+    } finally {
+      setSeeding(false);
+    }
+  };
+
+  const handleClearAllData = () => {
     Alert.alert(
-      'Demo Data Load කරන්නද?',
-      'This will CLEAR all current data and add sample Sri Lankan transactions. Continue?',
+      'දත්ත මකන්න | Clear All Data',
+      'සියලු දේශීය දත්ත, PIN සහ සැකසුම් මකා දැමේ.\nThis will erase all local data, PIN, and settings. Continue?',
       [
-        { text: 'නැහැ · Cancel', style: 'cancel' },
+        { text: 'අවලංගු කරන්න | Cancel', style: 'cancel' },
         {
-          text: 'ඔව් · Load Demo',
+          text: 'මකන්න | Clear',
+          style: 'destructive',
           onPress: async () => {
-            setSeeding(true);
+            setClearing(true);
             try {
-              const r = await api.seedData();
-              Alert.alert('✅ සාර්ථකයි!', `${r.seeded} demo transactions loaded!\nDemo data ලැබුණා!`);
+              await AsyncStorage.clear();
+              await pinService.disable();
+              setSmsEnabled(false);
+              setNotifEnabled(true);
+              setPinEnabled(false);
+              setDevMode(false);
+              Alert.alert(
+                'සාර්ථකයි | Done',
+                'සියලු දත්ත සාර්ථකව මකා දැමිණි.\nAll data cleared. Restart the app for changes to take effect.',
+                [{ text: 'OK', onPress: () => router.replace('/') }]
+              );
             } catch (e) {
-              Alert.alert('Error', 'Failed to load demo data');
+              Alert.alert('Error', 'Failed to clear data. Please try again.');
             } finally {
-              setSeeding(false);
+              setClearing(false);
             }
           },
         },
@@ -85,246 +105,207 @@ export default function SettingsScreen() {
     );
   };
 
-  const SettingRow = ({
-    icon, iconColor, label, labelEn, children, onPress, testID,
-  }: {
-    icon: string; iconColor: string; label: string; labelEn: string;
-    children?: React.ReactNode; onPress?: () => void; testID?: string;
-  }) => (
-    <TouchableOpacity
-      testID={testID}
-      onPress={onPress}
-      activeOpacity={onPress ? 0.7 : 1}
-      style={styles.row}
-    >
-      <View style={[styles.rowIcon, { backgroundColor: iconColor + '20' }]}>
-        <Ionicons name={icon as any} size={20} color={iconColor} />
-      </View>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.rowLabel}>{label}</Text>
-        <Text style={styles.rowEn}>{labelEn}</Text>
-      </View>
-      {children}
-      {!children && onPress && <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />}
-    </TouchableOpacity>
-  );
-
-  const SectionTitle = ({ si, en }: { si: string; en: string }) => (
-    <View style={styles.sectionHdr}>
-      <Text style={styles.sectionLbl}>{si}</Text>
-      <Text style={styles.sectionEn}>{en}</Text>
-    </View>
-  );
-
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-        <View style={styles.header}>
-          <Text style={styles.title}>සැකසීම්</Text>
-          <Text style={styles.titleEn}>Settings · Customize your experience</Text>
-        </View>
+    <SafeAreaView style={styles.safe}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <Text style={styles.header}>සැකසුම් | Settings</Text>
 
-        {/* Automation */}
-        <SectionTitle si="ස්වයංක්‍රීය ලක්ෂණ" en="Automation Features" />
-        <View style={styles.card}>
-          <SettingRow
-            testID="sms-toggle-row"
-            icon="mail" iconColor={COLORS.primary}
-            label="📱 SMS හඳුනාගැනීම"
-            labelEn="Auto SMS bank transaction detection"
-          >
+        {/* Notifications Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>දැනුම්දීම් | Notifications</Text>
+          <View style={styles.row}>
+            <View style={styles.rowLeft}>
+              <Ionicons name="notifications-outline" size={20} color={COLORS.primary} />
+              <View style={styles.rowText}>
+                <Text style={styles.rowLabel}>Push Notifications</Text>
+                <Text style={styles.rowSub}>දැනුම්දීම් සක්‍රීය කරන්න</Text>
+              </View>
+            </View>
             <Switch
-              testID="sms-toggle"
-              value={smsEnabled}
-              onValueChange={v => { setSmsEnabled(v); toggle('sms_enabled', v); }}
-              trackColor={{ false: COLORS.border, true: COLORS.primaryLight }}
-              thumbColor={smsEnabled ? COLORS.primary : '#f4f3f4'}
-            />
-          </SettingRow>
-          <View style={styles.rowDivider} />
-          <SettingRow
-            testID="notif-toggle-row"
-            icon="notifications" iconColor={COLORS.accent}
-            label="🔔 දැනුම්දීම්"
-            labelEn="Push notifications"
-          >
-            <Switch
-              testID="notif-toggle"
               value={notifEnabled}
-              onValueChange={v => { setNotifEnabled(v); toggle('notif_enabled', v); }}
-              trackColor={{ false: COLORS.border, true: '#FEF3C7' }}
-              thumbColor={notifEnabled ? COLORS.accent : '#f4f3f4'}
+              onValueChange={val => { setNotifEnabled(val); toggle('notif_enabled', val); }}
+              trackColor={{ false: COLORS.border, true: COLORS.primary }}
+              thumbColor={COLORS.white}
             />
-          </SettingRow>
-        </View>
-
-        {/* Data */}
-        <SectionTitle si="දත්ත සහ ආරක්ෂාව" en="Data & Security" />
-        <View style={styles.card}>
-          <SettingRow
-            testID="demo-data-btn"
-            icon="flask" iconColor="#8B5CF6"
-            label="🎯 Demo Data Load කරන්න"
-            labelEn="Load sample Sri Lankan transactions"
-            onPress={handleSeed}
-          >
-            {seeding ? <ActivityIndicator size="small" color={COLORS.primary} /> : undefined}
-          </SettingRow>
-          <View style={styles.rowDivider} />
-          <SettingRow
-            testID="export-btn"
-            icon="download-outline" iconColor={COLORS.success}
-            label="📊 CSV ගොනුව"
-            labelEn="Export all transactions"
-            onPress={() => Alert.alert('Coming Soon', 'CSV export will be available soon!\nCSV export ඉදිරියේදී එයි!')}
-          />
-          <View style={styles.rowDivider} />
-          <SettingRow
-            testID="backup-btn"
-            icon="cloud-upload-outline" iconColor="#0284C7"
-            label="☁️ Cloud Backup"
-            labelEn="Google Drive backup (coming soon)"
-            onPress={() => Alert.alert('Firebase Sync', 'Cloud backup coming soon!\nFirebase sync ඉදිරියේදී!')}
-          />
-          <View style={styles.rowDivider} />
-          <SettingRow
-            testID="pin-toggle-row"
-            icon="lock-closed" iconColor={COLORS.danger}
-            label="🔒 PIN අගුල"
-            labelEn="App lock with PIN"
-          >
+          </View>
+          <View style={styles.row}>
+            <View style={styles.rowLeft}>
+              <Ionicons name="chatbubble-outline" size={20} color={COLORS.primary} />
+              <View style={styles.rowText}>
+                <Text style={styles.rowLabel}>SMS Alerts</Text>
+                <Text style={styles.rowSub}>SMS දැනුම්දීම්</Text>
+              </View>
+            </View>
             <Switch
-              testID="pin-toggle"
-              value={pinEnabled}
-              onValueChange={togglePinLock}
-              trackColor={{ false: COLORS.border, true: '#FEE2E2' }}
-              thumbColor={pinEnabled ? COLORS.danger : '#f4f3f4'}
+              value={smsEnabled}
+              onValueChange={val => { setSmsEnabled(val); toggle('sms_enabled', val); }}
+              trackColor={{ false: COLORS.border, true: COLORS.primary }}
+              thumbColor={COLORS.white}
             />
-          </SettingRow>
-          {pinEnabled && (
-            <>
-              <View style={styles.rowDivider} />
-              <SettingRow
-                testID="change-pin-btn"
-                icon="key" iconColor="#7C3AED"
-                label="🔑 PIN වෙනස් කරන්න"
-                labelEn="Change your PIN"
-                onPress={() => router.push('/pin-setup')}
-              />
-            </>
-          )}
-          <View style={styles.rowDivider} />
-          <SettingRow
-            testID="privacy-policy-btn"
-            icon="document-text-outline" iconColor="#0284C7"
-            label="📄 පෞද්ගලිකත්ව ප්‍රතිපත්තිය"
-            labelEn="Privacy Policy"
-            onPress={() => router.push('/privacy')}
-          />
-        </View>
-
-        {/* Firebase Section */}
-        <SectionTitle si="Firebase සම්බන්ධය" en="Cloud Sync Setup" />
-        <View style={[styles.card, styles.firebaseCard]}>
-          <Ionicons name="cloud" size={32} color={COLORS.primary} style={{ marginBottom: 10 }} />
-          <Text style={styles.firebaseTitle}>Firebase Sync</Text>
-          <Text style={styles.firebaseDesc}>
-            Cloud sync with Firebase Firestore saves your data safely.{'\n'}
-            Firebase Firestore cloud sync ඉදිරියේදී enabled වේ.
-          </Text>
-          <TouchableOpacity
-            testID="firebase-setup-btn"
-            style={styles.firebaseBtn}
-            onPress={() => Linking.openURL('https://console.firebase.google.com/')}
-          >
-            <Text style={styles.firebaseBtnTxt}>Firebase Console → Setup</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* About */}
-        <SectionTitle si="යෙදුම ගැන" en="About App" />
-        <View style={styles.card}>
-          <View style={styles.aboutWrap}>
-            <Text style={styles.aboutAppName}>Ganu Denu</Text>
-            <Text style={styles.aboutSinhala}>ගණු දෙනු · Money Manager</Text>
-            <Text style={styles.aboutVersion}>Version {VERSION}</Text>
-            <Text style={styles.aboutTagline}>Made with ❤️ for Sri Lanka 🇱🇰</Text>
-            <Text style={styles.aboutDesc}>
-              Sinhala money manager for Sri Lankan families.{'\n'}
-              ශ්‍රී ලාංකීය පවුල් සඳහා සිංහල මුදල් කළමනාකරු.
-            </Text>
-
-            <View style={styles.divider} />
-
-            <Text style={styles.contactTitle}>📬 Contact / සම්බන්ධ වන්න</Text>
-            <TouchableOpacity
-              testID="email-business-btn"
-              style={styles.contactRow}
-              onPress={() => Linking.openURL('mailto:sismathtrading@kamfa.net')}
-            >
-              <Ionicons name="briefcase-outline" size={16} color={COLORS.primary} />
-              <Text style={styles.contactEmail}>sismathtrading@kamfa.net</Text>
-              <Text style={styles.contactBadge}>Business</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              testID="email-gmail-btn"
-              style={styles.contactRow}
-              onPress={() => Linking.openURL('mailto:silshabir@gmail.com')}
-            >
-              <Ionicons name="mail-outline" size={16} color="#EA4335" />
-              <Text style={styles.contactEmail}>silshabir@gmail.com</Text>
-              <Text style={[styles.contactBadge, { backgroundColor: '#FDECEA', color: '#EA4335' }]}>Gmail</Text>
-            </TouchableOpacity>
-
-            <View style={styles.divider} />
-
-            <Text style={styles.copyright}>
-              © 2025 Ganu Denu · ගණු දෙනු{'\n'}
-              All Rights Reserved · සියලු හිමිකම් ඇවිරිණි{'\n'}
-              Developed in UAE 🇦🇪 for Sri Lanka 🇱🇰
-            </Text>
           </View>
         </View>
 
-        <View style={{ height: 20 }} />
+        {/* Security Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>ආරක්ෂාව | Security</Text>
+          <View style={styles.row}>
+            <View style={styles.rowLeft}>
+              <Ionicons name="lock-closed-outline" size={20} color={COLORS.primary} />
+              <View style={styles.rowText}>
+                <Text style={styles.rowLabel}>PIN Lock</Text>
+                <Text style={styles.rowSub}>PIN අගුලු දැමීම</Text>
+              </View>
+            </View>
+            <Switch
+              value={pinEnabled}
+              onValueChange={togglePinLock}
+              trackColor={{ false: COLORS.border, true: COLORS.primary }}
+              thumbColor={COLORS.white}
+            />
+          </View>
+          {pinEnabled && (
+            <TouchableOpacity style={styles.linkRow} onPress={() => router.push('/pin-setup')}>
+              <Ionicons name="key-outline" size={18} color={COLORS.primary} />
+              <Text style={styles.linkText}>Change PIN | PIN වෙනස් කරන්න</Text>
+              <Ionicons name="chevron-forward" size={16} color={COLORS.textLight} />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* About Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>යෙදුම ගැන | About</Text>
+          <TouchableOpacity style={styles.row} onPress={handleVersionTap}>
+            <View style={styles.rowLeft}>
+              <Ionicons name="information-circle-outline" size={20} color={COLORS.primary} />
+              <View style={styles.rowText}>
+                <Text style={styles.rowLabel}>Version</Text>
+                <Text style={styles.rowSub}>v{VERSION}</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.linkRow} onPress={() => Linking.openURL('https://ganu-denu-privacy.netlify.app')}>
+            <Ionicons name="shield-checkmark-outline" size={18} color={COLORS.primary} />
+            <Text style={styles.linkText}>Privacy Policy | රහස්‍යතා ප්‍රතිපත්තිය</Text>
+            <Ionicons name="chevron-forward" size={16} color={COLORS.textLight} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Developer Tools - hidden until 7 taps on version */}
+        {devMode && (
+          <View style={[styles.section, styles.devSection]}>
+            <Text style={styles.sectionTitle}>Developer Tools</Text>
+            <Text style={styles.devNote}>These options are for testing only and will not appear in production.</Text>
+
+            <TouchableOpacity
+              style={[styles.devButton, styles.seedButton]}
+              onPress={handleSeedData}
+              disabled={seeding}
+            >
+              {seeding ? (
+                <ActivityIndicator color={COLORS.white} />
+              ) : (
+                <>
+                  <Ionicons name="cloud-upload-outline" size={18} color={COLORS.white} />
+                  <Text style={styles.devButtonText}>Load Demo Data | ආදර්ශ දත්ත පූරණය</Text>
+                </>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.devButton, styles.clearButton]}
+              onPress={handleClearAllData}
+              disabled={clearing}
+            >
+              {clearing ? (
+                <ActivityIndicator color={COLORS.white} />
+              ) : (
+                <>
+                  <Ionicons name="trash-outline" size={18} color={COLORS.white} />
+                  <Text style={styles.devButtonText}>Clear All Data | දත්ත මකන්න</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
+
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: COLORS.bg },
-  header: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 16 },
-  title: { fontSize: 26, fontWeight: '800', color: COLORS.textMain },
-  titleEn: { fontSize: 12, color: COLORS.textMuted, marginTop: 2 },
-
-  sectionHdr: { paddingHorizontal: 20, marginTop: 6, marginBottom: 8 },
-  sectionLbl: { fontSize: 13, fontWeight: '700', color: COLORS.primary },
-  sectionEn: { fontSize: 10, color: COLORS.textMuted },
-
-  card: { marginHorizontal: 16, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, marginBottom: 16, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 3 },
-  row: { flexDirection: 'row', alignItems: 'center', padding: 16 },
-  rowIcon: { width: 38, height: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
-  rowLabel: { fontSize: 14, fontWeight: '600', color: COLORS.textMain },
-  rowEn: { fontSize: 11, color: COLORS.textMuted, marginTop: 1 },
-  rowDivider: { height: 1, backgroundColor: COLORS.border, marginLeft: 68 },
-
-  firebaseCard: { alignItems: 'center', padding: 24 },
-  firebaseTitle: { fontSize: 18, fontWeight: '700', color: COLORS.textMain, marginBottom: 8 },
-  firebaseDesc: { fontSize: 12, color: COLORS.textMuted, textAlign: 'center', lineHeight: 18, marginBottom: 16 },
-  firebaseBtn: { backgroundColor: COLORS.primaryLight, borderRadius: RADIUS.lg, paddingHorizontal: 24, paddingVertical: 12 },
-  firebaseBtnTxt: { color: COLORS.primary, fontWeight: '700', fontSize: 13 },
-
-  aboutWrap: { alignItems: 'center', padding: 24 },
-  aboutAppName: { fontSize: 24, fontWeight: '800', color: COLORS.primary, marginBottom: 2 },
-  aboutSinhala: { fontSize: 14, fontWeight: '600', color: COLORS.textMuted, marginBottom: 6 },
-  aboutVersion: { fontSize: 13, color: COLORS.textMuted, marginBottom: 6 },
-  aboutTagline: { fontSize: 14, fontWeight: '600', color: COLORS.accent, marginBottom: 10 },
-  aboutDesc: { fontSize: 12, color: COLORS.textMuted, textAlign: 'center', lineHeight: 18, marginBottom: 4 },
-  divider: { width: '100%', height: 1, backgroundColor: COLORS.border, marginVertical: 16 },
-  contactTitle: { fontSize: 14, fontWeight: '700', color: COLORS.textMain, marginBottom: 10, alignSelf: 'flex-start' },
-  contactRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8, alignSelf: 'flex-start' },
-  contactEmail: { fontSize: 13, color: COLORS.primary, fontWeight: '600', textDecorationLine: 'underline' },
-  contactBadge: { backgroundColor: COLORS.primaryLight, color: COLORS.primary, fontSize: 10, fontWeight: '700', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 },
-  copyright: { fontSize: 11, color: COLORS.textMuted, textAlign: 'center', lineHeight: 18 },
+  safe: { flex: 1, backgroundColor: COLORS.background },
+  container: { flex: 1 },
+  content: { padding: 16, paddingBottom: 40 },
+  header: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginBottom: 20,
+  },
+  section: {
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.md,
+    marginBottom: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  devSection: {
+    borderWidth: 1,
+    borderColor: '#FF6B35',
+    backgroundColor: '#FFF8F5',
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.textLight,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    paddingVertical: 10,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
+  rowLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  rowText: { marginLeft: 12, flex: 1 },
+  rowLabel: { fontSize: 15, color: COLORS.text, fontWeight: '500' },
+  rowSub: { fontSize: 12, color: COLORS.textLight, marginTop: 1 },
+  linkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    gap: 10,
+  },
+  linkText: { flex: 1, fontSize: 14, color: COLORS.primary },
+  devNote: {
+    fontSize: 12,
+    color: '#FF6B35',
+    marginBottom: 8,
+    fontStyle: 'italic',
+  },
+  devButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 14,
+    borderRadius: RADIUS.sm,
+    marginVertical: 6,
+    gap: 8,
+  },
+  seedButton: { backgroundColor: COLORS.primary },
+  clearButton: { backgroundColor: '#E53935' },
+  devButtonText: { color: COLORS.white, fontWeight: '600', fontSize: 14 },
 });
