@@ -33,8 +33,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: frontend
-        run: npm install
-
+      run: npm install --legacy-peer-deps
       - name: Build Android
         working-directory: frontend
         env:
