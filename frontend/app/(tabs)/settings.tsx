@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, StyleSheet, Switch, TouchableOpacity, Alert, ActivityIndicator, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '../../components/Icon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, RADIUS } from '../../constants/theme';
-import { api } from '../../services/api';
 import { pinService } from '../../services/pinService';
+import { seedDemoData, clearAllData } from '../../services/firestoreService';
 
 const VERSION = '1.0.0';
 
@@ -18,7 +18,8 @@ export default function SettingsScreen() {
   const [seeding, setSeeding] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [devMode, setDevMode] = useState(false);
-  const [devTapCount, setDevTapCount] = useState(0);
+  const devTapCountRef = useRef(0);
+  const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     AsyncStorage.multiGet(['sms_enabled', 'notif_enabled', 'dev_mode'])
@@ -36,13 +37,18 @@ export default function SettingsScreen() {
   };
 
   const handleVersionTap = async () => {
-    const newCount = devTapCount + 1;
-    setDevTapCount(newCount);
-    if (newCount >= 7) {
+    devTapCountRef.current += 1;
+    if (tapTimeoutRef.current) clearTimeout(tapTimeoutRef.current);
+    tapTimeoutRef.current = setTimeout(() => {
+      devTapCountRef.current = 0;
+    }, 1500);
+
+    if (devTapCountRef.current >= 7) {
+      devTapCountRef.current = 0;
+      if (tapTimeoutRef.current) clearTimeout(tapTimeoutRef.current);
       const newDevMode = !devMode;
       setDevMode(newDevMode);
       await AsyncStorage.setItem('dev_mode', newDevMode ? '1' : '0');
-      setDevTapCount(0);
       Alert.alert(
         newDevMode ? 'Developer Mode ON' : 'Developer Mode OFF',
         newDevMode ? 'Data management tools are now visible.' : 'Developer tools hidden.'
@@ -62,10 +68,10 @@ export default function SettingsScreen() {
   const handleSeedData = async () => {
     setSeeding(true);
     try {
-      await api.seedDemoData();
-      Alert.alert('සාර්ථකයි', 'Demo data loaded successfully.');
-    } catch (e) {
-      Alert.alert('Error', 'Failed to seed demo data.');
+      const result = await seedDemoData();
+      Alert.alert('සාර්ථකයි', `${result.seeded} transactions loaded from Firestore!`);
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to seed Firestore data.');
     } finally {
       setSeeding(false);
     }
@@ -74,7 +80,7 @@ export default function SettingsScreen() {
   const handleClearAllData = () => {
     Alert.alert(
       'දත්ත මකන්න | Clear All Data',
-      'සියලු දේශීය දත්ත, PIN සහ සැකසුම් මකා දැමේ.\nThis will erase all local data, PIN, and settings. Continue?',
+      'සියලු Firestore දත්ත, AsyncStorage සහ PIN මකා දැමේ.\nThis will erase all Firestore data, local AsyncStorage, and PIN. Continue?',
       [
         { text: 'අවලංගු කරන්න | Cancel', style: 'cancel' },
         {
@@ -83,6 +89,7 @@ export default function SettingsScreen() {
           onPress: async () => {
             setClearing(true);
             try {
+              await clearAllData();
               await AsyncStorage.clear();
               await pinService.disable();
               setSmsEnabled(false);
@@ -91,11 +98,11 @@ export default function SettingsScreen() {
               setDevMode(false);
               Alert.alert(
                 'සාර්ථකයි | Done',
-                'සියලු දත්ත සාර්ථකව මකා දැමිණි.\nAll data cleared. Restart the app for changes to take effect.',
+                'සියලු දත්ත සාර්ථකව මකා දැමිණි.\nAll Firestore + local data cleared. Restart the app.',
                 [{ text: 'OK', onPress: () => router.replace('/') }]
               );
-            } catch (e) {
-              Alert.alert('Error', 'Failed to clear data. Please try again.');
+            } catch (e: any) {
+              Alert.alert('Error', e.message || 'Failed to clear data. Please try again.');
             } finally {
               setClearing(false);
             }
@@ -194,7 +201,7 @@ export default function SettingsScreen() {
         {/* Developer Tools - hidden until 7 taps on version */}
         {devMode && (
           <View style={[styles.section, styles.devSection]}>
-            <Text style={styles.sectionTitle}>Developer Tools</Text>
+            <Text style={styles.sectionTitle}>Developer Tools (Firestore)</Text>
             <Text style={styles.devNote}>These options are for testing only and will not appear in production.</Text>
 
             <TouchableOpacity
